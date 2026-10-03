@@ -1,0 +1,334 @@
+/* Base reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Root level - Base scrolling setup */
+html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    /* Changed from scroll to auto for better mobile compatibility */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+}
+
+/* Hide scrollbars - Chrome, Safari and Opera */
+html::-webkit-scrollbar {
+    display: none;
+}
+
+/* Body setup */
+body {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100svh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Removed smooth scrolling - can conflict with GSAP ScrollTrigger on mobile */
+    /* scroll-behavior: smooth; */
+}
+
+/* Hide body scrollbars */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Aggressive touch prevention for specific elements */
+.no-touch,
+[data-no-touch] {
+    touch-action: none;
+}
+
+/* Modern overscroll behavior - only for browsers that support it */
+/* Allow vertical scrolling but prevent horizontal overscroll and pull-to-refresh */
+@supports (overscroll-behavior: none) {
+
+    html {
+        overscroll-behavior-x: none;
+        overscroll-behavior-y: none;
+        touch-action: auto;
+    }
+
+    body {
+        touch-action: auto;
+    }
+}
+
+/* For browsers without overscroll-behavior support (Safari < 16) */
+/* UPDATED: Removed position:fixed which caused scroll issues on mobile */
+@supports not (overscroll-behavior: none) {
+
+    /* Less invasive approach - just ensure proper dimensions */
+    html,
+    body {
+        /* height: 100%; */
+        /* Keep overflow-x hidden to prevent horizontal scroll */
+        overflow-x: hidden;
+        /* Ensure vertical scrolling works normally */
+        overflow-y: auto;
+    }
+}
+
+/* Hide all icons and SVGs during initial load */
+body.loading>* {
+    display: none;
+}
+
+/* Smooth scrolling preference - DISABLED for mobile compatibility */
+/* GSAP ScrollTrigger handles smooth scrolling better than CSS */
+/*
+@media (prefers-reduced-motion: no-preference) {
+    html,
+    body {
+        scroll-behavior: smooth;
+    }
+}
+*/
+
+/* Ensure scrollable containers use proper overscroll behavior */
+@supports (overscroll-behavior: none) {
+
+    .scroll-container,
+    [data-scroll],
+    .overflow-auto,
+    .overflow-scroll {
+        overscroll-behavior: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Firefox scrollbar hiding using modern syntax */
+@supports (scrollbar-width: none) {
+
+    html,
+    body {
+        scrollbar-width: none;
+    }
+}
+
+.debug-test {
+    font-family: var(--fontfamily_primary);
+}
+
+:root {
+    /* Viewport dimensions - dynamically updated by useGlobalCSSVariables hook */
+    /* Progressive enhancement: vw/vh → dvw/dvh → JavaScript values */
+    --deviceWidth: 100svw;
+    --deviceHeight: 100svh;
+
+    /* IDML font scale: multiplier for pt-based font sizes from IDML imports.
+       Mobile gets 1.4× (print pt → screen readable), tablet 1.2×, desktop 1.0×. */
+    --idml-font-scale: 1.2;
+}
+
+@media (min-width: 600px) {
+    :root { --idml-font-scale: 1.2; }
+}
+
+@media (min-width: 1024px) {
+    :root { --idml-font-scale: 1.0; }
+}
+
+:root {
+    --deviceWidth: 100svw;
+    --deviceHeight: 100svh;
+    /* Fallback - will be overridden by JavaScript with stable device height */
+
+    font-family: var(--fontfamily_primary, system-ui, sans-serif);
+    
+    /* colors */
+    --col_backgroundW1: rgba(49, 47, 46, 1);
+    --col_primaryW1: rgba(255, 215, 68, 1);
+    --col_text: #333;
+    --col_textCopy: #000000;
+    --col_backgroundLight: #f2f2f2;
+    --col_backgroundDark: rgba(49, 47, 46, 1);
+    --col_menuIcons: #272727;
+    --col_menuIconsHover: #ccbc87;
+    --col_scrollbar_primary: #202020;
+    --col_scrollbar_secondary: #7c7c7c;
+
+    /* Typography - W1 Font Manager Variables */
+    /* Body fonts (IBM Plex Sans) */
+    --typo_body_ultralight: var(--fontfamily_primary);
+    --typo_body_ultralight_italic: var(--fontfamily_primary);
+    --typo_body_thin: var(--fontfamily_primary);
+    --typo_body_light: var(--fontfamily_primary);
+    --typo_body_light_italic: var(--fontfamily_primary);
+    --typo_body: var(--fontfamily_primary);
+    --typo_body_italic: var(--fontfamily_primary);
+    --typo_body_medium: var(--fontfamily_primary);
+    --typo_body_medium_italic: var(--fontfamily_primary);
+    --typo_body_bold: var(--fontfamily_primary);
+    --typo_body_bold_italic: var(--fontfamily_primary);
+    --typo_body_black: var(--fontfamily_primary);
+    --typo_body_black_italic: var(--fontfamily_primary);
+    --typo_navLink: var(--fontfamily_primary);
+
+    /* measures */
+    --measure_marginLeft_devicePL: 8%;
+    --measure_marginRight_devicePL: 22%;
+
+    /* header */
+    --col_header_background: #ffffff;
+    --measure_headerHeight_devicePP: 50px;
+    --measure_headerHeight_deviceD: 55px;
+    --measure_headerHeight_deviceDS: 55px;
+    --measure_headerWidth_deviceD: 220px;
+    --measure_headerWidth_deviceDM: 220px;
+    --measure_headerWidth_deviceDL: 230px;
+    --measure_headerWidth_devicePL: 260px;
+
+    /* textbar */
+    --measure_textbarOpenWidth_deviceD: 420px;
+    --measure_textbarOpenWidth_deviceDM: 400px;
+    --measure_textbarOpenWidth_deviceDL: 420px;
+    --measure_textbarOpenWidth_devicePL: 350px;
+    --measure_textbarClosedWidth: 50px;
+    --measure_textbarClosedHeight: 50px;
+
+    /* footer */
+    --measure_footerHeight_deviceD: 110px;
+    --measure_footerHeight_devicePP: 200px;
+    --measure_footerHeight_devicePL: 110px;
+
+    /* Loading spinner */
+    --measure_loadingSpinnerSize: 100px;
+
+    /* Navigation */
+    --col_navLinkPositive: #000;
+    --col_navLinkNegative: #ffffff;
+    --col_navLinkActiveNegative: #cea641;
+    --col_navLinkActivePositive: #cea641;
+    --col_navLinkPositiveHover: rgb(129, 82, 10);
+    --col_navLinkNegativeHover: rgb(129, 82, 10);
+    --measure_navPopupMaxHeight_devicePP: 230px;
+    --measure_navPopupMaxHeight_deviceD: 220px;
+    --measure_navPopupMaxHeight_deviceDS: 220px;
+    --measure_navPopupMaxHeight_deviceDM: 220px;
+
+    /* Debug */
+    --col_debug_background: #202020;
+    --col_debug_text: #ffffff;
+    --col_debug_border: #ffffff;
+    --col_debug_scrollbar_primary: #202020;
+    --col_debug_scrollbar_secondary: #7c7c7c;
+    --typo_debug: var(--fontfamily_primary);
+    --typo_debug_item: var(--fontfamily_primary);
+    --typo_debug_monospace: monospace;
+    --typo_debug_panelTitel: var(--fontfamily_primary);
+    --typo_debug_sectionTitel: var(--fontfamily_primary);
+    --typo_debug_grid: var(--fontfamily_primary);
+}
+
+/* Optional but recommended */
+#__next,
+/* for Next.js */
+main {
+    min-height: 100svh;
+    width: 100%;
+}
+
+/* Remove default button styles */
+button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Ensure images don't create unwanted space */
+img {
+    display: block;
+    max-width: 100%;
+    /* height: auto; */
+}
+
+/* ── Tag Overlay Popup ─────────────────────────────────────────────── */
+.tag-overlay-container--popup,
+.tag-overlay-container--tooltip {
+    background: #fff;
+    color: #222;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    padding: 28px 14px 14px 14px;
+    position: relative;
+    font-size: 0.92em;
+    line-height: 1.45;
+}
+
+.tag-overlay-container--sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(340px, 90vw);
+    background: #fff;
+    color: #222;
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+    padding: 44px 16px 16px 16px;
+    overflow-y: auto;
+    z-index: 9999;
+}
+
+.tag-overlay-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 1.3em;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 2px 5px;
+    border-radius: 3px;
+    transition: opacity 0.15s;
+}
+
+.tag-overlay-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.tag-overlay-content {
+    overflow: auto;
+    max-height: 60vh;
+}
+
+.tag-overlay-content table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: auto;
+}
+
+.tag-overlay-content th,
+.tag-overlay-content td {
+    border: 1px solid #000;
+    padding: 1px 2px;
+    line-height: 1.15;
+}
+
+/* Flipbook reader (FlipbookReader, data-reader-layout): a full-screen view.
+   While it is on the page the document neither scrolls nor bounces; pages,
+   rail, popup and zoom scroll inside their own areas. */
+html:has([data-reader-layout]),
+body:has([data-reader-layout]) {
+    overflow: hidden;
+    overscroll-behavior: none;
+}

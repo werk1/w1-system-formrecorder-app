@@ -1,0 +1,2 @@
+export { AppFontSettings } from './AppFontSettings'
+

@@ -1,0 +1,146 @@
+.container {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+}
+
+.imageWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  position: relative;
+  object-fit: cover;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.controls {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0rem;
+  padding: 0rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.blendModeSelect,
+.opacitySlider {
+  background: transparent;
+  color: white;
+  border: 3px solid white;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.opacitySlider {
+  width: 100px;
+}
+
+/**
+ * Styles for the BlendRenderer Component
+ */
+.imageBase {
+  composes: image;
+}
+
+.imageBlend {
+  composes: image;
+}
+
+
+
+/**
+ * Styles for the RendererDescriptions Component
+ */
+.descriptionContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.descriptionTitle {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.descriptionText {
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+
+
+
+/**
+ * Styles for the RendererControls Component
+ */
+.dotsContainer {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 18px;
+  z-index: 30;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.dotActive {
+  background-color: white;
+}
+
+.arrowsContainer {
+  position: absolute;
+  display: flex;
+  top: 50%;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+}
+
+.arrow {
+  position: absolute;
+  flex: 1;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  z-index: 2;
+}
+
+.prev {
+  left: 20px;
+}
+
+.next {
+  right: 20px;
+}
+
+/* ... other shared styles ... */

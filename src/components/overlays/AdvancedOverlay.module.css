@@ -1,0 +1,291 @@
+/* AdvancedOverlay Component Styles
+ *
+ * Layout-only styling for the AdvancedOverlay container structure.
+ * Follows the same pattern as TextBlock for consistency.
+ */
+
+/* Main container for AdvancedOverlay - EXACT like TextBlock outerTextBlockContainer */
+.outerAdvancedOverlayContainer {
+  position: relative;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: 1000;
+}
+
+/* Loading content container - EXACT like TextBlock innerTextBlockContainer */
+.innerAdvancedOverlayContainer {
+  position: relative;
+  width: 100%;
+  display: flex;
+  padding: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Main loading overlay */
+.advancedOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--col_background_primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999999;
+  pointer-events: auto;
+  opacity: 1;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+}
+
+/* Ensure overlay is immediately visible when loading */
+.advancedOverlay.loading {
+  opacity: 1 !important;
+  display: flex !important;
+  pointer-events: auto !important;
+
+  /* Block ALL touch and interaction */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+
+  /* iOS-specific fixes */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+}
+
+/* Loading content wrapper */
+.advancedOverlayInnerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Loading text */
+.advancedOverlayText {
+  font-family: var(--fontfamily_primary);
+  color: var(--col_text_primary);
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+/* ===== SPINNER STYLES ===== */
+
+/* Spinner container */
+.spinner {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spinner ring */
+.spinnerRing {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top: 2px solid var(--col_text_primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== VARIANT STYLES ===== */
+
+/* Fullscreen variant - covers entire viewport */
+.fullscreen .advancedOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+}
+
+/* Content variant - covers main content area (default) */
+.content .advancedOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99998;
+}
+
+/* Minimal variant - smaller overlay */
+.minimal .advancedOverlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 200px;
+  border-radius: 1rem;
+  background-color: rgba(0, 0, 0, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  z-index: 99997;
+}
+
+.minimal .advancedOverlayInnerContainer {
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.minimal .advancedOverlayText {
+  font-size: 0.875rem;
+}
+
+.minimal .spinner {
+  width: 30px;
+  height: 30px;
+}
+
+.minimal .spinnerRing {
+  width: 25px;
+  height: 25px;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .advancedOverlayInnerContainer {
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .advancedOverlayText {
+    font-size: 0.875rem;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+  }
+
+  .spinnerRing {
+    width: 30px;
+    height: 30px;
+  }
+
+  .minimal .advancedOverlay {
+    width: 250px;
+    height: 150px;
+  }
+
+  /* Extra high z-index for mobile to ensure overlay is above image sliders */
+  .advancedOverlay {
+    z-index: 99999999 !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+
+    /* iOS Safari specific fixes */
+    -webkit-overflow-scrolling: touch !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .spinnerRing {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top: 2px solid var(--col_text_primary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .spinnerRing {
+    animation: none;
+  }
+
+  .spinner::after {
+    content: '⟳';
+    font-size: 1.5rem;
+    opacity: 0.6;
+  }
+}
+
+/* iOS-specific adjustments */
+@supports (-webkit-touch-callout: none) {
+  .advancedOverlayText {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-kerning: normal;
+    letter-spacing: 0.045em;
+    word-spacing: -0.03em;
+  }
+
+  /* iOS Safari overlay fixes */
+  .advancedOverlay {
+    height: -webkit-fill-available !important;
+    min-height: 100vh !important;
+    min-height: -webkit-fill-available !important;
+
+    /* Force GPU acceleration on iOS */
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-will-change: transform, opacity !important;
+    will-change: transform, opacity !important;
+
+    /* Prevent iOS scrolling issues */
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: none !important;
+
+    /* Ensure it covers everything */
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+  }
+}

@@ -1,0 +1,50 @@
+.containerDeviceLayout_deviceDL_scrollModePage {
+    display: flex;
+    flex-direction: column;
+    /* background-color: aqua; */
+}
+
+.containerDeviceLayout_deviceDL_scrollModeContent {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: auto;
+}
+
+.containerDeviceLayout_deviceD {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.containerDeviceLayout_deviceDS {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.containerDeviceLayout_deviceDL {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.containerDeviceLayout_devicePP {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+}
+
+.containerDeviceLayout_devicePL {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+}

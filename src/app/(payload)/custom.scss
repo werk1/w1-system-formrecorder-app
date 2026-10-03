@@ -1,0 +1,1115 @@
+@import url('/api/app-fonts.css');
+
+/*
+ * ============================================================================
+ * W1 SYSTEM PAYLOAD ADMIN PANEL CUSTOMIZATIONS
+ * ============================================================================
+ *
+ * This file contains all customizations for the Payload CMS admin panel
+ * to match W1 System branding and ensure proper functionality across devices.
+ *
+ * Sections:
+ * 1. Base Overrides - Global HTML/body fixes
+ * 2. W1 System Branding - Logo, icons, and brand styling
+ * 3. Button System - Form buttons with W1 System styling
+ * 4. Header Layout & Navigation - Spacing and responsive layout
+ * 5. Dashboard Optimizations - Card layout improvements
+ * 6. Responsive Mobile Support - Device-specific adjustments
+ *
+ * Last Updated: January 2025
+ * Compatible with: Payload CMS 3.43.0+
+ * Note: Media queries work properly - !important only used where essential
+ * ============================================================================
+ */
+
+/* Payload shows the same create action in the header and in an empty list.
+   Keep the prominent empty-state action and hide only its duplicate. */
+.collection-list--app-font-assets:has(.no-results),
+.collection-list--app-font-families:has(.no-results) {
+  .list-header__title-actions {
+    display: none;
+  }
+}
+
+/* App Fonts import surfaces use the same spacing, controls and elevations as
+   native Payload fields. Only the responsive card arrangement is app-owned. */
+.app-font-import {
+  border-bottom: 1px solid var(--theme-elevation-150);
+  margin-bottom: calc(var(--base) * 1.25);
+  padding-bottom: calc(var(--base) * 1.25);
+
+  > h3 {
+    margin: 0 0 calc(var(--base) * 0.25);
+  }
+
+  > p {
+    margin: 0 0 var(--base);
+    max-width: 80ch;
+  }
+
+  &__grid {
+    display: grid;
+    gap: var(--base);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+
+  &__card {
+    background: var(--theme-elevation-0);
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-m);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: var(--base);
+
+    .field-type {
+      margin-bottom: calc(var(--base) * 0.75);
+    }
+  }
+
+  &__card-header {
+    margin-bottom: calc(var(--base) * 0.75);
+
+    h4 {
+      margin: 0 0 calc(var(--base) * 0.25);
+    }
+
+    p {
+      color: var(--theme-elevation-650);
+      margin: 0;
+    }
+  }
+
+  &__configuration-note {
+    font-size: 0.875rem;
+    margin-top: calc(var(--base) * 0.35) !important;
+
+    code {
+      color: var(--theme-elevation-800);
+    }
+  }
+
+  &__dropzone {
+    height: auto;
+    margin-bottom: calc(var(--base) * 0.5);
+    min-height: calc(var(--base) * 6);
+  }
+
+  &__dropzone-content {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: calc(var(--base) * 0.35);
+    justify-content: center;
+    text-align: center;
+
+    > span {
+      color: var(--theme-elevation-650);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--base) * 0.35);
+    justify-content: center;
+    margin-top: calc(var(--base) * 0.25);
+  }
+
+  &__hidden-input {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  &__selection {
+    color: var(--theme-elevation-650);
+    margin: 0 0 calc(var(--base) * 0.5);
+  }
+
+  &__primary-action {
+    align-self: flex-start;
+    margin-top: auto;
+  }
+
+  &__search-row {
+    align-items: end;
+    display: grid;
+    gap: calc(var(--base) * 0.5);
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: calc(var(--base) * 0.75);
+
+    .field-type {
+      margin-bottom: 0;
+    }
+  }
+
+  &__results {
+    display: grid;
+    gap: calc(var(--base) * 0.5);
+    max-height: calc(var(--base) * 13);
+    overflow-y: auto;
+  }
+
+  &__result {
+    border-top: 1px solid var(--theme-elevation-150);
+    padding-top: calc(var(--base) * 0.5);
+  }
+
+  &__result-meta {
+    color: var(--theme-elevation-650);
+    font-size: 0.875rem;
+    margin: calc(var(--base) * 0.15) 0 calc(var(--base) * 0.4);
+  }
+
+  &__status {
+    margin-top: var(--base);
+
+    p:first-child {
+      margin-top: 0;
+    }
+
+    ul:last-child,
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    &__search-row {
+      align-items: stretch;
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* Read-only continuation of each editable App Font fallback chain. It uses
+   Payload field spacing and theme colors so the fixed fallback is visible
+   without looking like another editable relationship. */
+.app-font-system-fallback {
+  margin-bottom: calc(var(--base) * 0.75);
+
+  &__control {
+    align-items: center;
+    background: var(--theme-elevation-50);
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    color: var(--theme-elevation-500);
+    cursor: not-allowed;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--base) * 0.25);
+    min-height: calc(var(--base) * 2);
+    opacity: 0.72;
+    padding: calc(var(--base) * 0.45) calc(var(--base) * 0.6);
+    user-select: none;
+  }
+
+  .field-description {
+    color: var(--theme-elevation-600);
+    margin-top: calc(var(--base) * 0.25);
+  }
+}
+
+/* Parsed face inventory extends Payload's native field treatment. It uses the
+   same borders, radii and theme elevations as relationships and arrays. */
+.app-font-face-inventory {
+  margin-bottom: var(--base);
+
+  &__panel {
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    overflow: hidden;
+  }
+
+  &__summary {
+    align-items: baseline;
+    background: var(--theme-elevation-50);
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--base) * 0.35);
+    justify-content: space-between;
+    padding: calc(var(--base) * 0.6);
+
+    span {
+      color: var(--theme-elevation-650);
+      font-size: 0.875rem;
+    }
+  }
+
+  &__face {
+    padding: calc(var(--base) * 0.6);
+
+    + .app-font-face-inventory__face {
+      border-top: 1px solid var(--theme-elevation-150);
+    }
+
+    .checkbox-input {
+      margin: 0;
+    }
+  }
+
+  &__all {
+    border-bottom: 1px solid var(--theme-elevation-150);
+    border-top: 1px solid var(--theme-elevation-150);
+    padding: calc(var(--base) * 0.6);
+
+    .checkbox-input {
+      margin: 0;
+    }
+  }
+
+  &__face-label {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--base) * 0.1);
+
+    span {
+      color: var(--theme-elevation-650);
+      font-size: 0.875rem;
+      font-weight: 400;
+    }
+  }
+
+  &__metadata,
+  &__axes {
+    color: var(--theme-elevation-600);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.8125rem;
+    gap: calc(var(--base) * 0.35);
+    margin: calc(var(--base) * 0.25) 0 0 calc(var(--base) * 1.4);
+  }
+
+  &__axes span {
+    background: var(--theme-elevation-100);
+    border-radius: var(--style-radius-s);
+    color: var(--theme-elevation-800);
+    padding: calc(var(--base) * 0.1) calc(var(--base) * 0.3);
+  }
+
+  &__empty,
+  &__error,
+  &__warning,
+  &__provider-note {
+    margin: calc(var(--base) * 0.4) 0 0;
+  }
+
+  &__empty {
+    color: var(--theme-elevation-600);
+  }
+
+  &__error {
+    color: var(--theme-error-500);
+  }
+
+  &__warning {
+    background: var(--theme-warning-100);
+    border-top: 1px solid var(--theme-warning-300);
+    color: var(--theme-warning-900);
+    padding: calc(var(--base) * 0.5) calc(var(--base) * 0.6);
+  }
+
+  &__provider-note {
+    background: var(--theme-elevation-50);
+    border-top: 1px solid var(--theme-elevation-150);
+    color: var(--theme-elevation-650);
+    padding: calc(var(--base) * 0.5) calc(var(--base) * 0.6);
+  }
+}
+
+.app-font-weight-substitutions {
+  margin-bottom: var(--base);
+
+  &__grid {
+    display: grid;
+    gap: calc(var(--base) * 0.5);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: calc(var(--base) * 0.5);
+
+    .field-type {
+      margin-bottom: 0;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .app-font-weight-substitutions__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app-font-publish {
+  border-top: 1px solid var(--theme-elevation-150);
+  margin-top: var(--base);
+
+  &__section {
+    padding-top: var(--base);
+
+    > h3 {
+      margin: 0 0 calc(var(--base) * 0.25);
+    }
+
+    > p {
+      margin: 0 0 calc(var(--base) * 0.75);
+      max-width: 80ch;
+    }
+  }
+
+  &__history {
+    border-top: 1px solid var(--theme-elevation-150);
+    margin-top: var(--base);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--base) * 0.5);
+    margin-top: calc(var(--base) * 0.75);
+  }
+
+  &__dirty-state {
+    margin: 0 0 calc(var(--base) * 0.75);
+  }
+
+  &__preview {
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-m);
+    margin-top: var(--base);
+    padding: var(--base);
+
+    > small {
+      display: block;
+      margin-top: calc(var(--base) * 0.75);
+    }
+  }
+
+  &__preview-primary {
+    font-family: var(--fontfamily_primary);
+    font-size: 28px;
+    line-height: 1.4;
+    margin: 0 0 calc(var(--base) * 0.5);
+  }
+
+  &__preview-secondary {
+    font-family: var(--fontfamily_secondary);
+    font-size: 20px;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  &__font-set-inventory {
+    border-top: 1px solid var(--theme-elevation-150);
+    margin-top: var(--base);
+    padding-top: var(--base);
+
+    > h4 {
+      margin: 0 0 calc(var(--base) * 0.25);
+    }
+
+    > p {
+      color: var(--theme-elevation-650);
+      margin: 0 0 calc(var(--base) * 0.75);
+      max-width: 80ch;
+    }
+  }
+
+  &__font-set-roles {
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    overflow: hidden;
+  }
+
+  &__font-set-role {
+    padding: calc(var(--base) * 0.75);
+
+    + .app-font-publish__font-set-role {
+      border-top: 1px solid var(--theme-elevation-150);
+    }
+
+    > header {
+      align-items: baseline;
+      display: flex;
+      flex-wrap: wrap;
+      gap: calc(var(--base) * 0.35);
+      justify-content: space-between;
+
+      span {
+        color: var(--theme-elevation-650);
+      }
+    }
+
+    > p {
+      color: var(--theme-elevation-650);
+      margin: calc(var(--base) * 0.25) 0 calc(var(--base) * 0.5);
+    }
+
+    > small {
+      color: var(--theme-elevation-600);
+      display: block;
+      margin-top: calc(var(--base) * 0.5);
+    }
+  }
+
+  &__font-set-faces {
+    display: grid;
+    gap: calc(var(--base) * 0.25);
+
+    > div {
+      align-items: baseline;
+      background: var(--theme-elevation-50);
+      border: 1px solid var(--theme-elevation-150);
+      border-radius: var(--style-radius-s);
+      display: grid;
+      gap: calc(var(--base) * 0.15) calc(var(--base) * 0.5);
+      grid-template-columns: minmax(10rem, 0.7fr) minmax(14rem, 1.3fr) auto;
+      padding: calc(var(--base) * 0.4) calc(var(--base) * 0.5);
+
+      small {
+        color: var(--theme-elevation-600);
+        grid-column: 1 / -1;
+        margin: 0;
+      }
+
+      em {
+        color: var(--theme-success-500);
+        font-size: 0.8125rem;
+        font-style: normal;
+      }
+
+      &.is-not-published {
+        opacity: 0.58;
+
+        em {
+          color: var(--theme-elevation-600);
+        }
+      }
+    }
+  }
+
+  &__font-set-substitutions {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--base) * 0.2);
+    margin-top: calc(var(--base) * 0.5);
+
+    span {
+      color: var(--theme-elevation-650);
+    }
+  }
+
+  @media (max-width: 768px) {
+    &__font-set-faces > div {
+      grid-template-columns: 1fr;
+
+      small {
+        grid-column: auto;
+      }
+    }
+  }
+}
+
+
+/* ================================
+   1. BASE OVERRIDES & RESPONSIVE VARIABLES
+   ================================ */
+
+/* ================================
+   MOBILE TOUCH FIXES - Critical for iOS/Android Admin Panel
+   ================================ */
+
+/* Enable touch events for all interactive elements */
+input,
+textarea,
+select,
+button,
+.btn,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+a {
+  touch-action: manipulation !important;
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+}
+
+/* Specific fixes for form elements */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+  cursor: text !important;
+}
+
+/* Button touch fixes */
+button,
+.btn,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Links touch fixes */
+a {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Payload-specific form elements */
+.field-type input,
+.field-type textarea,
+.field-type select,
+.field-type button {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+}
+
+/* Browser Extension Compatibility - Prevent hydration errors from extension attributes */
+[data-protonpass-form],
+[data-1p-ignore],
+[data-gramm],
+[data-lastpass-icon-root],
+[data-bitwarden-watching],
+[__gchrome_uniqueid],
+[data-dashlane-rid],
+[data-keeper-watching],
+[data-roboform-watching] {
+  /* Extensions inject these attributes after SSR, causing hydration mismatches */
+  /* This CSS ensures they don't affect layout but preserve touch events */
+  pointer-events: auto !important;
+}
+
+/* Override any conflicting touch-action rules */
+* {
+  touch-action: auto !important;
+}
+
+/* Re-enable specific touch actions for interactive elements */
+input,
+textarea,
+select,
+button,
+.btn,
+[role="button"],
+a {
+  touch-action: manipulation !important;
+}
+
+/* Global hydration error suppression for extension-modified elements */
+.payload-admin-root {
+  /* This class will be used to suppress hydration warnings */
+  position: relative;
+}
+
+:root {
+  /* Admin Localizer Spacing - Responsive Values */
+  --measure_adminLocalizerSpacing_devicePP: 16px;
+  /* Phone Portrait */
+  --measure_adminLocalizerSpacing_devicePPSM: 16px;
+  /* Phone Portrait Small */
+  --measure_adminLocalizerSpacing_devicePPXL: 16px;
+  /* Phone Portrait X-Large */
+  --measure_adminLocalizerSpacing_devicePL: 12px;
+  /* Phone Landscape */
+  --measure_adminLocalizerSpacing_devicePLSM: 12px;
+  /* Phone Landscape Small */
+  --measure_adminLocalizerSpacing_devicePLXL: 12px;
+  /* Phone Landscape X-Large */
+  --measure_adminLocalizerSpacing_deviceTP: 18px;
+  /* Tablet Portrait */
+  --measure_adminLocalizerSpacing_deviceTL: 20px;
+  /* Tablet Landscape */
+  --measure_adminLocalizerSpacing_deviceD: 20px;
+  /* Desktop */
+  --measure_adminLocalizerSpacing_deviceDS: 18px;
+  /* Desktop Small */
+  --measure_adminLocalizerSpacing_deviceDM: 20px;
+  /* Desktop Medium */
+  --measure_adminLocalizerSpacing_deviceDL: 20px;
+  /* Desktop Large */
+
+  /* Admin Logo Height - Responsive Values */
+  --measure_adminLogoHeight_devicePP: 28px;
+  /* Phone Portrait */
+  --measure_adminLogoHeight_devicePPSM: 28px;
+  /* Phone Portrait Small */
+  --measure_adminLogoHeight_devicePPXL: 28px;
+  /* Phone Portrait X-Large */
+  --measure_adminLogoHeight_devicePL: 24px;
+  /* Phone Landscape */
+  --measure_adminLogoHeight_devicePLSM: 24px;
+  /* Phone Landscape Small */
+  --measure_adminLogoHeight_devicePLXL: 24px;
+  /* Phone Landscape X-Large */
+  --measure_adminLogoHeight_deviceTP: 30px;
+  /* Tablet Portrait */
+  --measure_adminLogoHeight_deviceTL: 32px;
+  /* Tablet Landscape */
+  --measure_adminLogoHeight_deviceD: 32px;
+  /* Desktop */
+  --measure_adminLogoHeight_deviceDS: 30px;
+  /* Desktop Small */
+  --measure_adminLogoHeight_deviceDM: 32px;
+  /* Desktop Medium */
+  --measure_adminLogoHeight_deviceDL: 32px;
+  /* Desktop Large */
+
+  /* Admin Logo Font Size - Responsive Values */
+  --measure_adminLogoFontSize_devicePP: 16px;
+  /* Phone Portrait */
+  --measure_adminLogoFontSize_devicePPSM: 16px;
+  /* Phone Portrait Small */
+  --measure_adminLogoFontSize_devicePPXL: 16px;
+  /* Phone Portrait X-Large */
+  --measure_adminLogoFontSize_devicePL: 14px;
+  /* Phone Landscape */
+  --measure_adminLogoFontSize_devicePLSM: 14px;
+  /* Phone Landscape Small */
+  --measure_adminLogoFontSize_devicePLXL: 14px;
+  /* Phone Landscape X-Large */
+  --measure_adminLogoFontSize_deviceTP: 17px;
+  /* Tablet Portrait */
+  --measure_adminLogoFontSize_deviceTL: 18px;
+  /* Tablet Landscape */
+  --measure_adminLogoFontSize_deviceD: 18px;
+  /* Desktop */
+  --measure_adminLogoFontSize_deviceDS: 17px;
+  /* Desktop Small */
+  --measure_adminLogoFontSize_deviceDM: 18px;
+  /* Desktop Medium */
+  --measure_adminLogoFontSize_deviceDL: 18px;
+  /* Desktop Large */
+
+  /* Admin Button Padding - Mobile Only */
+  --measure_adminButtonPadding_devicePP: 20px;
+  /* Phone Portrait */
+  --measure_adminButtonPadding_devicePPSM: 20px;
+  /* Phone Portrait Small */
+  --measure_adminButtonPadding_devicePPXL: 20px;
+  /* Phone Portrait X-Large */
+  --measure_adminButtonPadding_devicePL: 16px;
+  /* Phone Landscape */
+  --measure_adminButtonPadding_devicePLSM: 16px;
+  /* Phone Landscape Small */
+  --measure_adminButtonPadding_devicePLXL: 16px;
+  /* Phone Landscape X-Large */
+}
+
+html {
+  overflow: visible;
+  /* Fix mobile viewport issues - modern browsers with legacy fallbacks */
+  -webkit-text-size-adjust: 100%;
+  /* Legacy WebKit */
+  -ms-text-size-adjust: 100%;
+  /* Legacy IE/Edge */
+  text-size-adjust: 100%;
+  /* stylelint-disable-line property-no-unknown */
+  /* Modern browsers */
+}
+
+body {
+  overflow: visible;
+  /* Fix mobile orientation and scaling issues */
+  -webkit-text-size-adjust: 100%;
+  /* Legacy WebKit */
+  -ms-text-size-adjust: 100%;
+  /* Legacy IE/Edge */
+  text-size-adjust: 100%;
+  /* stylelint-disable-line property-no-unknown */
+  /* Modern browsers */
+  min-height: -webkit-fill-available;
+  min-height: 100vh;
+}
+
+/* Force mobile viewport recalculation on orientation change */
+@media screen and (orientation: landscape) {
+
+  html,
+  body {
+    height: -webkit-fill-available;
+    height: 100vh;
+  }
+}
+
+@media screen and (orientation: portrait) {
+
+  html,
+  body {
+    height: -webkit-fill-available;
+    height: 100vh;
+  }
+}
+
+/* ================================
+   2. W1 SYSTEM BRANDING
+   ================================ */
+
+/* W1 System Logo (Large version for navigation/login) */
+.w1-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+
+  &__image {
+    height: 32px;
+    width: auto;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  &__text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: -0.5px;
+  }
+}
+
+/* W1 System Icon (Small version for UI elements) */
+.w1-icon {
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* Dark mode support for W1 branding */
+[data-theme="dark"] .w1-logo {
+  &__text {
+    color: #fff;
+  }
+}
+
+/* ================================
+   3. BUTTON SYSTEM
+   ================================ */
+
+/* W1 System Form Buttons - Apply to form buttons only, exclude UI elements */
+.btn:not(.btn--icon):not(.btn--style-icon-label):not(.card__click):not(.btn--style-none) {
+  color: rgb(40, 39, 39);
+  background-color: white;
+  border: 1px solid black;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* W1 System Primary Buttons (Save, Submit, etc.) */
+.btn--style-primary:not(.btn--icon):not(.btn--style-icon-label):not(.card__click):not(.btn--style-none) {
+  background-color: #333;
+  color: white;
+  border: 2px solid #333;
+
+  &:hover {
+    background-color: white;
+    color: #333;
+  }
+}
+
+/* Preserve Default Styling for UI Elements */
+.btn--icon,
+.btn--style-icon-label,
+.card__click,
+.btn--style-none {
+  background-color: unset;
+  border: unset;
+  padding: unset;
+  color: unset;
+}
+
+/* Icon Button Hover States */
+.btn--icon:hover,
+.btn--style-icon-label:hover {
+  background-color: var(--theme-elevation-100);
+  color: var(--theme-text);
+}
+
+/* ================================
+   4. HEADER LAYOUT & NAVIGATION
+   ================================ */
+
+/* Step Navigation Container - Allow W1 logo to display properly */
+.step-nav__home {
+  width: auto;
+  min-width: 0;
+  overflow: visible;
+
+  span {
+    width: auto;
+    overflow: visible;
+    display: inline-block;
+  }
+}
+
+.step-nav {
+  .step-nav__home {
+    flex-shrink: 0;
+  }
+}
+
+/* Header Navigation Wrapper */
+.app-header__step-nav-wrapper {
+  width: auto;
+  min-width: 0;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+/* Header Controls Layout */
+.app-header__controls-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-header__actions-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-header__localizer {
+  margin-right: 10px;
+}
+
+.app-header__localizer-button {
+  margin: 0;
+}
+
+/* Localizer Positioning */
+.app-header__localizer-spacing {
+  margin-right: 10px;
+}
+
+
+/* ================================
+   5. DASHBOARD OPTIMIZATIONS
+   ================================ */
+
+/* Dashboard Card Layout Improvements */
+.dashboard__card-list {
+  .card {
+    overflow: visible;
+  }
+
+  .card__actions {
+    flex-shrink: 0;
+    min-width: auto;
+  }
+
+  .card__title {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+  }
+}
+
+/* Fix 2-column dashboard grid overflow on phones (Payload 3.82+) */
+@media (max-width: 768px) {
+  :root {
+    --gutter-h: 12px !important;
+  }
+
+  .render-root,
+  .render-root > *,
+  .template-default,
+  .template-default > *,
+  .dashboard,
+  .collections,
+  .collections__wrap {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  .collections__card-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .collections__card-list .card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    word-break: break-word !important;
+  }
+}
+
+/* ================================
+   6. RESPONSIVE MOBILE SUPPORT
+   ================================ */
+
+/* Device-Info Based Mobile Optimizations - Using W1 System Responsive Dimensions */
+
+/* Dynamic spacing using CSS custom properties */
+.app-header__localizer {
+  margin-right: var(--admin-localizer-spacing, 16px);
+}
+
+/* W1 System logo responsive sizing */
+.w1-logo {
+  &__text {
+    font-size: var(--admin-logo-font-size, 18px);
+  }
+
+  &__image {
+    height: var(--admin-logo-height, 32px);
+  }
+}
+
+/* W1 System button mobile adjustments */
+.btn--style-primary:not(.btn--icon):not(.btn--style-icon-label):not(.card__click):not(.btn--style-none) {
+  padding: var(--admin-button-padding, 8px) 16px;
+  margin: 1px 0;
+}
+
+/* Essential Mobile Layout Fixes */
+@media (max-width: 768px) {
+
+  /* iPhone horizontal overflow prevention - Keep !important for critical layout */
+  .app-header__wrapper {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .app-header__controls-wrapper {
+    max-width: calc(100vw - 60px) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Force viewport recalculation on very small screens */
+  html,
+  body {
+    min-height: -webkit-fill-available;
+    min-height: 100vh;
+  }
+
+  /* Mobile-specific touch optimizations */
+  input,
+  textarea,
+  select,
+  button,
+  .btn {
+    min-height: 44px !important;
+    /* iOS minimum touch target */
+    min-width: 44px !important;
+    font-size: 16px !important;
+    /* Prevent iOS zoom on focus */
+  }
+
+  /* Ensure form fields are properly sized for mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px !important;
+    /* Prevent iOS zoom */
+    padding: 12px !important;
+    border-radius: 4px !important;
+  }
+
+  /* Mobile button improvements */
+  button,
+  .btn {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+    border-radius: 4px !important;
+  }
+}
+
+/* ================================
+   7. LOGIN FORM CUSTOMIZATIONS
+   ================================ */
+
+/* Forgot Password Link Spacing */
+.forgot-password,
+.forgot-password-link,
+[href*="forgot-password"],
+a[href*="/forgot-password"] {
+  margin: 24px 0 !important;
+  display: block !important;
+  text-align: center;
+}
+
+/* Login Form Spacing Improvements */
+.login-form {
+  .form-submit {
+    margin-bottom: 24px;
+  }
+
+  /* Match forgot-password links via href (CSS cannot select by link text) */
+  a[href*="forgot"] {
+    margin: 24px 0;
+    display: block;
+    text-align: center;
+  }
+}
+
+/* Alternative targeting for Payload's login structure */
+.template-login {
+
+  .form-footer,
+  .login-footer,
+  .auth-footer {
+    margin-top: 24px;
+    margin-bottom: 24px;
+
+    a {
+      margin: 12px 0;
+      display: block;
+      text-align: center;
+    }
+  }
+}
+
+/* Generic link spacing in auth forms */
+.auth-form,
+.login-container,
+[class*="login"] {
+  a:not(.btn):not(.button) {
+    margin: 20px 0;
+    display: block;
+    text-align: center;
+  }
+}
+
+/* ============================================================================
+ * END W1 SYSTEM CUSTOMIZATIONS
+ * ============================================================================ */

@@ -1,0 +1,150 @@
+import { NextRequest, NextResponse } from 'next/server'
+import configPromise from '@payload-config'
+import { getPayload } from 'payload'
+import type { Payload } from 'payload'
+import type { W1FormRecord } from '@werk1/w1-system-formrecorder/types'
+import { relationId } from '@/lib/flipbook'
+
+export const runtime = 'nodejs'
+
+/**
+ * Assembles the prepared `W1FormRecorderInput` for a formrecorder document:
+ * page images + text model from the flipbook's published revision and the
+ * ordered records. Admin-only (editor tool).
+ */
+
+const unauthorized = () =>
+  NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Admin login required.' } }, { status: 401 })
+
+async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
+  try {
+    const { user } = await payload.auth({ headers: request.headers })
+    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
+  } catch {
+    return false
+  }
+}
+
+type MediaDoc = { id: string | number; filename?: unknown; alt?: unknown }
+type PageRow = { image?: unknown; width?: unknown; height?: unknown; label?: unknown }
+type FlipbookDoc = {
+  id: string | number
+  title?: unknown
+  slug?: unknown
+  publishedSourcePdf?: unknown
+  publishedRevision?: unknown
+  textModel?: unknown
+  pages?: PageRow[] | null
+}
+type FormrecorderDoc = {
+  id: string | number
+  title?: unknown
+  slug?: unknown
+  flipbook?: unknown
+}
+type FormrecordDoc = {
+  id: string | number
+  order?: unknown
+  name?: unknown
+  pageIndex?: unknown
+  blocks?: unknown
+}
+
+const mediaFileUrl = (filename: unknown): string | null =>
+  typeof filename === 'string' && filename ? `/api/media/file/${filename}` : null
+
+async function loadMediaMap(payload: Payload, ids: Array<string | number>): Promise<Map<string, MediaDoc>> {
+  const map = new Map<string, MediaDoc>()
+  if (!ids.length) return map
+  const { docs } = await payload.find({
+    collection: 'media',
+    where: { id: { in: ids } } as never,
+    depth: 0,
+    pagination: false,
+    overrideAccess: true,
+  })
+  for (const doc of docs as unknown as MediaDoc[]) map.set(String(doc.id), doc)
+  return map
+}
+
+export async function GET(request: NextRequest) {
+  const payload = await getPayload({ config: configPromise })
+  if (!(await authenticateAdmin(payload, request))) return unauthorized()
+
+  const id = request.nextUrl.searchParams.get('id')
+  if (!id) {
+    return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'id is required.' } }, { status: 400 })
+  }
+
+  const doc = (await payload
+    .findByID({ collection: 'formrecorders' as never, id, depth: 0, overrideAccess: true })
+    .catch(() => null)) as FormrecorderDoc | null
+  if (!doc) {
+    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Formrecorder not found.' } }, { status: 404 })
+  }
+
+  const flipbookId = relationId(doc.flipbook)
+  const flipbook = flipbookId
+    ? ((await payload
+        .findByID({ collection: 'flipbooks' as never, id: flipbookId, depth: 0, overrideAccess: true })
+        .catch(() => null)) as FlipbookDoc | null)
+    : null
+  if (!flipbook || !Array.isArray(flipbook.pages) || !flipbook.publishedRevision) {
+    return NextResponse.json(
+      { error: { code: 'NOT_READY', message: 'Flipbook has no published revision (convert it first).' } },
+      { status: 422 },
+    )
+  }
+
+  const mediaIds = [
+    ...flipbook.pages.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
+    relationId(flipbook.publishedSourcePdf),
+  ].filter((v): v is string => Boolean(v))
+  const media = await loadMediaMap(payload, mediaIds)
+
+  const pages = flipbook.pages
+    .map((p, index) => {
+      const img = media.get(String(relationId(p.image)))
+      const imageUrl = mediaFileUrl(img?.filename)
+      if (!imageUrl) return null
+      return {
+        id: String(relationId(p.image) ?? `page-${index}`),
+        imageUrl,
+        width: typeof p.width === 'number' ? p.width : 0,
+        height: typeof p.height === 'number' ? p.height : 0,
+        alt: typeof img?.alt === 'string' ? img.alt : `Seite ${index + 1}`,
+        label: typeof p.label === 'string' ? p.label : undefined,
+      }
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null)
+
+  const { docs: recordDocs } = await payload.find({
+    collection: 'formrecords' as never,
+    where: { formrecorder: { equals: doc.id } } as never,
+    sort: 'order',
+    depth: 0,
+    pagination: false,
+    overrideAccess: true,
+  })
+  const records = (recordDocs as unknown as FormrecordDoc[]).map((r) => ({
+    id: String(r.id),
+    order: typeof r.order === 'number' ? r.order : 0,
+    ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
+    pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
+    blocks: Array.isArray(r.blocks) ? (r.blocks as W1FormRecord['blocks']) : [],
+  }))
+
+  const pdfMedia = media.get(String(relationId(flipbook.publishedSourcePdf)))
+
+  return NextResponse.json({
+    input: {
+      slug: typeof doc.slug === 'string' ? doc.slug : String(doc.id),
+      title: typeof doc.title === 'string' ? doc.title : undefined,
+      pages,
+      pdfUrl: mediaFileUrl(pdfMedia?.filename) ?? '',
+      textModel: flipbook.textModel ?? { revision: String(flipbook.publishedRevision), pages: [] },
+      records,
+    },
+    revision: flipbook.publishedRevision,
+  })
+}

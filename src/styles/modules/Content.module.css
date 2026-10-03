@@ -1,0 +1,40 @@
+.containerContent_deviceD {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--measure_headerWidth_deviceDL);
+    width: calc(100% - var(--measure_headerWidth_deviceDL)); /* ensures content fits remaining space */
+}
+
+.containerContent_deviceDL {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--measure_headerWidth_deviceDL);
+    width: calc(100% - var(--measure_headerWidth_deviceDL));
+    height: 100%;
+    /* ensures content fits remaining space */
+}
+
+.containerContent_deviceDS {
+    flex-direction: column;
+    flex: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+
+.containerContent_devicePP {
+    flex-direction: column;
+    flex: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.containerContent_devicePL {
+    flex: 1 1 auto; /* grow, shrink, auto basis */
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--measure_headerWidth_devicePL);
+    width: calc(100% - var(--measure_headerWidth_devicePL)); /* ensures content fits remaining space */
+}

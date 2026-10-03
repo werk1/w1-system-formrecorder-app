@@ -1,0 +1,127 @@
+.navBase {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+@media (max-width: 800px) {
+    .navBase {
+        justify-content: right;
+        margin-right: 10%;
+    }
+}
+
+.navLinkContainer {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    padding-left: 30px;
+    margin: 0px 0px 0px 0px;
+}
+
+/* Hamburger Icon*/
+.navMenuIcon {
+    color: var(--col_menuIcons);
+    font-size: 250%;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    margin-left: 20px;
+    padding-right: 30px;
+}
+
+/* STYLE AGENT
+ * The Style Agent is a utility that generates CSS class names for different components
+ * of the navigation menu. It ensures consistent naming across different device types
+ * (desktop, phone-portrait, phone-landscape) by appending the device type to each class name.
+ *
+ * The Style Agent provides the following classes:
+ * - navlink_main_container: Styles for the main navigation container
+ * - navlink_main_item: Styles for main navigation links
+ * - navlink_main_navlink_sub_item: Styles for main navigation links that have submenus
+ * - navlink_main_navlink_sub_icon: Styles for the submenu indicator icon
+ * - navlink_sub_container: Styles for the submenu container when it's closed
+ * - navlink_sub_container_open: Styles for the submenu container when it's open
+ * - navlink_sub_item: Styles for individual items within the submenu
+ * - navlink_animated_sub_container: Styles for animated submenu containers
+ *
+ * These classes are used in combination with the device-specific suffix (e.g., _desktop)
+ * to create the full class names used in the CSS below.
+ *
+ * The Style Agent helps maintain consistency and makes it easier to manage styles
+ * across different device types and components of the navigation menu.
+ * It is defined in the StyleAgent.ts file and imported where needed.
+ *
+ * Note: In this file, we're using the '_desktop' suffix, which is specific to the DesktopNav component.
+ */
+
+.navlinkMainItem_deviceD {
+    font-family: var(--typo_navLink);
+    font-size: 140%;
+    line-height: 1.4;
+    color: var(--col_navLinkPositive);
+    text-decoration: none;
+    padding: 0px 0px 0px 0px;
+
+}
+
+.navlinkMainItemActive_deviceD {
+    color: var(--col_navLinkActivePositive);
+    font-weight: bold;
+}
+
+.navlinkMainItem_deviceD:hover {
+    color: var(--col_navLinkPositiveHover);
+}
+
+.navlinkMainSubItem_deviceD {
+    font-size: 120%;
+    text-decoration: none;
+    color: var(--col_navLinkPositive);
+    padding: 0px 0px 0px 0px;
+}
+
+.navlinkMainSubItem_deviceD:hover {
+    color: var(--col_navLinkPositiveHover);
+}
+
+.navlinkMainSubItemActive_deviceD {
+    color: var(--col_navLinkActivePositive);
+    font-weight: bold;
+}
+
+.navlinkMainSubIcon_deviceD {
+    color: var(--col_menuIcons);
+    font-size: 60%;
+    margin-left: 5px;
+}
+
+/* Styles for the submenu containers within the desktop navigation */
+/* The .nav-container_desktop prefix ensures these styles only apply to desktop navigation */
+/* This approach allows for device-specific styling and prevents conflicts with other components */
+
+.navlinkAnimatedSubContainer_deviceD {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    background-color: var(--col_background-dark);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.navlinkSubItem_deviceD {
+    font-size: 100%;
+    text-decoration: none;
+    color: rgb(0, 0, 0);
+    padding: 6px 10px 0px 0px;
+    white-space: nowrap;
+}
+
+.navlinkSubItem_deviceD:hover {
+    color: var(--col_menuIcons);
+}

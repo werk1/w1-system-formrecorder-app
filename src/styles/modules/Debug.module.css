@@ -1,0 +1,44 @@
+.container {
+  position: absolute;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: lime;
+  font-family: monospace;
+  font-size: 12px;
+  z-index: 10000;
+  overflow: auto;
+  border-radius: 4px;
+}
+
+.label {
+  margin-bottom: 4px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Position variants */
+.topLeft {
+  top: 10px;
+  left: 10px;
+}
+
+.topRight {
+  top: 10px;
+  right: 10px;
+}
+
+.bottomLeft {
+  bottom: 10px;
+  left: 10px;
+}
+
+.bottomRight {
+  bottom: 10px;
+  right: 10px;
+}
+
+.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

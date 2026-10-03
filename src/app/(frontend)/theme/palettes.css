@@ -1,0 +1,63 @@
+/*
+ * App colour scheme mapping. The scheme values themselves (--flipbook-app-*
+ * for light and, via prefers-color-scheme, dark) come from the Payload
+ * collection "Farbschemata": the frontend layout renders the scheme chosen in
+ * Site Settings as <style id="app-color-scheme"> (lib/theme/appColorScheme.ts,
+ * built-in fallback: Graphit). There is no user switch.
+ *
+ * This file adds the per-mode tokens all schemes share and feeds the scheme
+ * into the viewer (--w1-flipbook-*), the navigation widget and the toolbar,
+ * so components never carry fixed colours.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+/* ---- Mode tokens shared by all schemes (lib/theme MODE_SHARED) --------- */
+
+:root {
+  --flipbook-app-field-bg: rgba(255, 255, 255, 0.72);
+  --flipbook-app-field-border: color-mix(in srgb, var(--flipbook-app-text) 16%, transparent);
+  /* Gutter shade at the spine (rest state and both page-turn engines);
+     softer than the package default of 0.18. */
+  --flipbook-app-gutter-shade: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --flipbook-app-field-bg: rgba(255, 255, 255, 0.08);
+    --flipbook-app-field-border: rgba(255, 255, 255, 0.16);
+    --flipbook-app-gutter-shade: rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ---- Mapping onto the viewer and the page ------------------------------ */
+
+:root {
+  --flipbook-app-secondary-soft: color-mix(in srgb, var(--flipbook-app-secondary) 16%, transparent);
+  --flipbook-app-focus: color-mix(in srgb, var(--flipbook-app-secondary) 45%, transparent);
+  /* Nearly opaque: the popup opens over busy page text. */
+  --flipbook-app-popover-bg: color-mix(in srgb, var(--flipbook-app-toolbar) 94%, transparent);
+
+  /* Viewer (w1-system-flipbook) with theme "inherit". */
+  --w1-flipbook-surface: var(--flipbook-app-bg);
+  --w1-flipbook-stage: var(--flipbook-app-stage);
+  --w1-flipbook-toolbar: var(--flipbook-app-toolbar);
+  --w1-flipbook-text: var(--flipbook-app-text);
+  --w1-flipbook-muted: var(--flipbook-app-muted);
+  --w1-flipbook-accent: var(--flipbook-app-secondary);
+  --w1-flipbook-control-bg: var(--flipbook-app-toolbar);
+  --w1-flipbook-control-hover: var(--flipbook-app-secondary-soft);
+  --w1-flipbook-control-text: var(--flipbook-app-primary);
+  --w1-flipbook-border: var(--flipbook-app-border);
+  --w1-flipbook-focus-ring: var(--flipbook-app-secondary);
+  --w1-flipbook-paper: var(--flipbook-app-paper);
+  --w1-flipbook-thumb-active: var(--flipbook-app-secondary);
+  --w1-flipbook-gutter-shade: var(--flipbook-app-gutter-shade);
+}
+
+body {
+  color: var(--flipbook-app-text);
+  background: var(--flipbook-app-bg);
+}

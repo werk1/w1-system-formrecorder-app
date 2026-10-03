@@ -1,0 +1,53 @@
+.virtualizedContainer {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 60vh;
+  /* Default max height */
+}
+
+/* Optional additional height variants */
+.virtualizedContainerSmall {
+  max-height: 30vh;
+}
+
+.virtualizedContainerMedium {
+  max-height: 45vh;
+}
+
+.virtualizedContainerLarge {
+  max-height: 70vh;
+}
+
+.virtualizedContainerFull {
+  max-height: 100vh;
+}
+
+.contentChunk {
+  width: 100%;
+}
+
+.placeholder {
+  width: 100%;
+  background-color: transparent;
+}
+
+/* Height variations for placeholders */
+.placeholder1 {
+  height: 100px;
+}
+
+.placeholder2 {
+  height: 150px;
+}
+
+.placeholder3 {
+  height: 200px;
+}
+
+.placeholder4 {
+  height: 250px;
+}
+
+.placeholder5 {
+  height: 300px;
+}

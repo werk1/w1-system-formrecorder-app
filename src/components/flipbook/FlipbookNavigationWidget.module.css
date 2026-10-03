@@ -1,0 +1,298 @@
+/*
+ * Navigation panel from the w1-system-widgets layouts (WidgetArea +
+ * WidgetShell tone "search", `.w1-widget-search` pills, round
+ * `.w1-widget-search__submit` buttons). Only the sizing that differs from a
+ * full widget card is set here. The page field popup follows the ticketing
+ * search panel popup (MainNav.module.css `.selectPopover`). All colours come
+ * from the app palette (theme/palettes.css), light and dark.
+ */
+.area.area {
+  width: auto;
+  /* Air between the panel and the page above / the rail below. */
+  margin-block: 10px 6px;
+  /* The widget roots are inline-size containers, which would size this
+     compact, content-wide panel to zero; no container queries needed here. */
+  container-type: normal;
+  /* Host tokens win over the widget defaults (:where). */
+  --w1-widget-min-height: 0;
+  --w1-widget-padding: 3px;
+}
+
+/* Widget tokens from the app palette (the area runs with theme="light";
+   dark comes from the palette). Three classes outrank the widget theme rules. */
+.area.area.area {
+  --w1-widget-primary: var(--flipbook-app-primary, #34322e);
+  --w1-widget-primary-strong: var(--flipbook-app-primary-strong, #1f1e1c);
+  --w1-widget-primary-text: var(--flipbook-app-primary-text, #ffffff);
+  --w1-widget-focus: var(--flipbook-app-focus, rgba(31, 111, 235, 0.3));
+  --w1-widget-foreground: var(--flipbook-app-text, #1f1e1c);
+  --w1-widget-muted: var(--flipbook-app-muted, #6b675f);
+  --w1-widget-border: var(--flipbook-app-panel-border, rgba(45, 57, 78, 0.1));
+  --w1-widget-shadow: 0 8px 22px var(--flipbook-app-panel-shadow, rgba(36, 53, 91, 0.09));
+  --w1-widget-search-gradient: var(--flipbook-app-panel-gradient);
+  --w1-widget-search-bg: var(--flipbook-app-field-bg, rgba(255, 255, 255, 0.72));
+  --w1-widget-search-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+}
+
+/* A compact panel that follows the pill shape of its controls. The shell's
+   overflow clip would cut off the page popup, so it stays visible. */
+.panel.panel {
+  container-type: normal;
+  min-height: 0;
+  padding: 3px;
+  overflow: visible;
+  border-radius: 999px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagePill.pagePill {
+  width: auto;
+}
+
+.pagePill.pagePill {
+  /* Same height as the round buttons beside it (43px incl. the 1px border). */
+  min-height: 43px;
+  padding: 0 4px;
+  /* Above the stage, zoom layer and rail. */
+  --w1-field-select-popover-z-index: 1000;
+
+  --w1-field-font-weight: 600;
+  --w1-field-line-s: 0;
+  --w1-field-radius-m: 999px;
+  --w1-field-size-m-font-size: 15px;
+  --w1-field-size-m-min-height: 41px;
+  --w1-field-padding-m-block: 0;
+  --w1-field-padding-m-inline: 12px;
+  --w1-field-glass-bg: transparent;
+  --w1-field-glass-color: var(--w1-widget-foreground);
+  --w1-field-glass-border: transparent;
+  --w1-field-glass-hover-border: transparent;
+  --w1-field-glass-focus-border: transparent;
+  --w1-select-popover-viewport-padding: 16px;
+  --w1-field-select-popover-offset: 8px;
+  --w1-field-select-popover-min-width: 100%;
+  /* Less right padding: the slim scrollbar sits close to the popup edge. */
+  --w1-field-select-popover-padding: 8px 3px 8px 8px;
+  --w1-field-select-popover-border: 1px solid var(--flipbook-app-panel-border, rgba(31, 35, 40, 0.12));
+  --w1-field-select-popover-radius: 20px;
+  --w1-field-select-popover-bg: var(--flipbook-app-popover-bg, rgba(242, 243, 245, 0.78));
+  --w1-field-select-popover-color: var(--flipbook-app-text, #1f2328);
+  --w1-field-select-popover-backdrop-filter: blur(16px);
+  --w1-field-select-popover-shadow: none;
+  --w1-popover-liquid-bg: var(--flipbook-app-popover-bg, rgba(242, 243, 245, 0.78));
+  --w1-popover-liquid-backdrop-filter: blur(11px) saturate(1.025) contrast(1);
+  --w1-popover-liquid-shadow: none;
+  --w1-popover-liquid-outline-alpha: 10%;
+  --w1-popover-liquid-surface-highlight-opacity: 0.035;
+  --w1-popover-liquid-surface-mid-opacity: 0.008;
+  --w1-popover-liquid-surface-shade-opacity: 0.012;
+  --w1-popover-liquid-gloss-opacity: 0.018;
+  --w1-popover-liquid-gloss-layer-opacity: 0.04;
+  --w1-field-select-option-min-height: 34px;
+  --w1-field-select-option-padding: 8px 10px;
+  --w1-field-select-option-radius: 12px;
+  --w1-field-select-option-font-size: 14px;
+  --w1-field-select-option-font-weight: 500;
+  --w1-field-select-option-letter-spacing: 0.01em;
+  --w1-field-select-option-color: var(--flipbook-app-muted, rgba(31, 35, 40, 0.74));
+  --w1-field-select-option-hover-bg: transparent;
+  --w1-field-select-option-hover-color: var(--flipbook-app-text, #111418);
+  --w1-field-select-option-selected-bg: transparent;
+  --w1-field-select-option-selected-color: var(--flipbook-app-secondary, #1f2328);
+  --w1-field-select-option-selected-hover-bg: transparent;
+  --w1-field-select-option-selected-hover-color: var(--flipbook-app-secondary, #111418);
+  --w1-field-select-option-placeholder-color: var(--flipbook-app-muted, rgba(31, 35, 40, 0.48));
+}
+
+/* Touch devices: clearly larger page numbers and 44px touch targets in the
+   page popup. */
+@media (pointer: coarse) {
+  .pagePill.pagePill {
+    --w1-field-select-option-min-height: 44px;
+    --w1-field-select-option-padding: 10px 14px;
+    --w1-field-select-option-font-size: 18px;
+    --w1-field-select-option-font-weight: 600;
+  }
+}
+
+/* Round buttons keep their 43px circle in the flex row. */
+.row .round {
+  flex: 0 0 43px;
+}
+
+.round:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.round:disabled:hover {
+  background: var(--w1-widget-primary);
+}
+
+.round:focus-visible {
+  outline: 3px solid var(--w1-widget-focus);
+  outline-offset: 2px;
+}
+
+.selectFieldWrap {
+  position: relative;
+  min-width: 0;
+}
+
+.pageField {
+  min-width: 6.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* Thumbnail strip toggle: a quiet round icon button in the palette primary,
+   like the top bar icons; while the strip is open it gets the soft secondary
+   background and a secondary icon. */
+.stripToggle {
+  --w1-button-neutral-ghost-bg: transparent;
+  --w1-button-neutral-ghost-color: var(--w1-flipbook-control-text, #1c1b1a);
+  --w1-button-neutral-ghost-hover-bg: transparent;
+  --w1-button-neutral-ghost-hover-color: var(--w1-flipbook-control-text, #1c1b1a);
+  --w1-button-neutral-ghost-active-bg: var(--w1-flipbook-control-hover, #e6e4df);
+  --w1-button-neutral-ghost-active-color: var(--w1-flipbook-accent, #1c1b1a);
+  --w1-button-focus-ring: 3px solid var(--w1-flipbook-focus-ring, #1a56db);
+  --w1-icon-size-m: 24px;
+}
+
+.row .stripToggle.stripToggle {
+  flex: 0 0 43px;
+  width: 43px;
+  min-width: 43px;
+  height: 43px;
+  min-height: 43px;
+  margin-inline-start: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+}
+
+/* W1Button's hover rule outranks its pressed rule. */
+.row .stripToggle.stripToggle[aria-pressed='true']:hover {
+  background: var(--w1-flipbook-control-hover, #e6e4df);
+  color: var(--w1-flipbook-accent, #1c1b1a);
+}
+
+/* Ticketing `.selectPopover`; the bar sits low in the reader, so the list
+   opens upwards (W1Select itself only opens downwards). */
+.selectPopover.selectPopover {
+  top: auto;
+  bottom: calc(100% + 8px);
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--flipbook-app-panel-border, rgba(31, 35, 40, 0.12));
+  border-radius: 20px;
+  background: var(--flipbook-app-popover-bg, rgba(242, 243, 245, 0.78));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 28px var(--flipbook-app-panel-shadow, transparent);
+  color: var(--flipbook-app-text, #1f2328);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  transform-origin: bottom left;
+  animation: selectPopoverIn 165ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+  will-change: opacity, transform;
+}
+
+/* ---- Vertical variant: column beside the pages (side arrangement) ------ */
+
+/* Fills the end column, sits on the stage colour and keeps clear of the
+   screen edge (safe areas), like the rail it stands in for. */
+.areaVertical.areaVertical {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: env(safe-area-inset-top, 0px) calc(8px + env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px)
+    2px;
+  background: var(--w1-flipbook-stage, #dcdad5);
+}
+
+.panelVertical.panelVertical {
+  border-radius: 28px;
+}
+
+.rowVertical {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+/* Page field: number on top, chevron below it. */
+.pagePillVertical.pagePillVertical {
+  min-height: 0;
+  padding: 0;
+  border-radius: 22px;
+  --w1-field-size-m-font-size: 13px;
+  --w1-field-size-m-min-height: 0px;
+  --w1-field-padding-m-block: 8px;
+  --w1-field-padding-m-inline: 5px;
+  --w1-field-control-gap: 3px;
+  --w1-field-select-popover-min-width: 5.5rem;
+  --w1-field-select-popover-offset: 10px;
+  /* The list is centred on the field, which sits at mid height. */
+  --w1-field-select-popover-max-height: calc(100dvh - 56px);
+}
+
+.pageFieldVertical {
+  min-width: 43px;
+  font-variant-numeric: tabular-nums;
+}
+
+.triggerVertical.triggerVertical {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+/* The list opens towards the pages, centred on the field. */
+.selectPopoverSide.selectPopoverSide.selectPopoverSide {
+  top: 50%;
+  right: calc(100% + 10px);
+  bottom: auto;
+  left: auto;
+  transform: translateY(-50%);
+  transform-origin: center right;
+  animation-name: selectPopoverSideIn;
+}
+
+@keyframes selectPopoverSideIn {
+  from {
+    opacity: 0;
+    transform: translate(3px, -50%) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1);
+  }
+}
+
+@keyframes selectPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selectPopover.selectPopover {
+    animation: none;
+  }
+}

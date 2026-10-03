@@ -1,0 +1,100 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-bottom: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand:has(.logo) {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/*
+ * Client logo instead of the name. Standard height 28 px, scaled by Site
+ * Settings ("Logo-Größe", --flipbook-logo-scale 0.6 to 1.7). The block
+ * margins take up the difference, so the logo always occupies 28 px in the
+ * layout: a larger logo reaches into the bar's padding, the bar keeps its
+ * height. It grows and shrinks from its left edge.
+ */
+.logo {
+  --logo-height: calc(28px * var(--flipbook-logo-scale, 1));
+  display: block;
+  width: auto;
+  height: var(--logo-height);
+  margin-block: calc((28px - var(--logo-height)) / 2);
+  max-width: min(46vw, 360px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav {
+  position: relative;
+}
+
+.menuButton {
+  padding: 6px 14px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--w1-flipbook-border, #b9b5ad);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.menuButton[aria-expanded='true'],
+.menuButton:hover {
+  background: var(--w1-flipbook-control-hover, #e6e4df);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 220px;
+  max-width: min(80vw, 360px);
+  max-height: 70vh;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border: 1px solid var(--w1-flipbook-border, #b9b5ad);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.menuItem {
+  display: block;
+  padding: 8px 10px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.menuItem:hover {
+  background: var(--w1-flipbook-control-hover, #e6e4df);
+}
+
+.menuItem[aria-current='page'] {
+  font-weight: 600;
+  background: var(--w1-flipbook-control-hover, #e6e4df);
+}

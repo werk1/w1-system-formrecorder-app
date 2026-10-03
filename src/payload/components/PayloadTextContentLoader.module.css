@@ -1,0 +1,39 @@
+.PayloadTextContentLoaderOuterContainer {
+	justify-content: start;
+}
+
+/* Mobile phones in portrait */
+@media screen and (max-width: 481px) and (orientation: portrait) {
+	.PayloadTextContentLoaderOuterContainer {
+		width: 100%;
+		height: 100%;
+	}
+}
+
+/* Tablet Portrait - Compact */
+@media (max-width: 800px) and (min-width: 481px) {
+	.PayloadTextContentLoaderOuterContainer {
+		justify-content: start;
+	}
+}
+
+/* Phone Landscape - Compact */
+@media (min-width: 481px) and (max-width: 667px) and (orientation: landscape) and (aspect-ratio >=16/9) {
+	.PayloadTextContentLoaderOuterContainer {
+		justify-content: start;
+	}
+}
+
+/* Phone Landscape - Regular */
+@media (min-width: 668px) and (max-width: 844px) and (orientation: landscape) and (aspect-ratio >=16/9) {
+	.PayloadTextContentLoaderOuterContainer {
+		justify-content: start;
+	}
+}
+
+/* Phone Landscape - Large */
+@media (min-width: 845px) and (max-width: 926px) and (orientation: landscape) and (aspect-ratio >=16/9) {
+	.PayloadTextContentLoaderOuterContainer {
+		justify-content: start;
+	}
+}

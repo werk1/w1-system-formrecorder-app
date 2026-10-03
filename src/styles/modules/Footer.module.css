@@ -1,0 +1,123 @@
+.containerFooter_deviceDL,
+.containerFooter_devicePP,
+.containerFooter_devicePL {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    /* Allow growth based on content */
+    min-height: var(--measure_footerHeight_devicePP);
+    /* Minimum height */
+    background-color: var(--col_backgroundDark);
+    padding: 20px 0px 0px 0px;
+}
+
+.icons {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 50px;
+    gap: 40px;
+}
+
+.icons>span {
+    color: white;
+    opacity: 0.8;
+    font-size: 50px;
+    height: auto !important;
+    /* Override any fixed height */
+    width: auto !important;
+    /* Override any fixed width */
+    transform: scale(1.7);
+    /* Scale up by 150% */
+    transform-origin: center center;
+    display: inline-block;
+    /* Ensure transform works properly */
+}
+
+.copyright {
+    font-family: var(--fontfamily_primary);
+    margin: 0;
+    font-size: 10px;
+    padding-top: 25px;
+    padding-bottom: 0px;
+}
+
+.footerContent {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: 25vh;
+    align-items: center;
+    justify-content: center;
+    /* Allow growth based on content */
+    background-color: var(--col_backgroundDark);
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.copySmall {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.footerContent .copySmall p {
+    font-family: var(--fontfamily_primary);
+    font-size: 0.8em;
+    line-height: 1.3em;
+    color: white;
+    letter-spacing: 0.05em;
+    margin-top: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 0.3em;
+}
+
+.footerContent .copySmall h6 {
+    font-family: var(--fontfamily_primary);
+    font-size: 0.85em;
+    color: white;
+    letter-spacing: 0.05em;
+    margin-bottom: 0px;
+    margin-top: 40px;
+}
+
+
+.iconLink {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    padding: 10px;
+    /* Create larger touch target */
+    margin: -10px;
+    /* Offset padding to maintain layout */
+    z-index: 1;
+}
+
+.logo {
+    width: 20%;
+    opacity: 0.4;
+    height: auto;
+    fill: white;
+    display: block;
+    margin: 0 auto;
+    padding-bottom: 50px;
+}
+
+/* Or keep both selectors to support both structures */
+.icons>span,
+.icons>.iconLink>span {
+    color: white;
+    opacity: 0.8;
+    font-size: 50px;
+    height: auto !important;
+    width: auto !important;
+    transform: scale(1.7);
+    transform-origin: center center;
+    display: inline-block;
+}

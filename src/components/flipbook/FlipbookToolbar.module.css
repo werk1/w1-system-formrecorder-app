@@ -1,0 +1,50 @@
+/*
+ * W1 UI icon buttons (ghost, neutral) mapped onto the flipbook theme, so
+ * hover, pressed, disabled and focus follow --w1-flipbook-* in light, dark
+ * and app themes.
+ */
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* Only the icon, in the palette primary; an active toggle gets a soft
+     secondary background and a secondary icon (palettes.css). */
+  --w1-button-neutral-ghost-bg: transparent;
+  --w1-button-neutral-ghost-color: var(--w1-flipbook-control-text, #1c1b1a);
+  --w1-button-neutral-ghost-hover-bg: transparent;
+  --w1-button-neutral-ghost-hover-color: var(--w1-flipbook-control-text, #1c1b1a);
+  --w1-button-neutral-ghost-active-bg: var(--w1-flipbook-control-hover, #e6e4df);
+  --w1-button-neutral-ghost-active-color: var(--w1-flipbook-accent, #1c1b1a);
+  --w1-button-focus-ring: 3px solid var(--w1-flipbook-focus-ring, #1a56db);
+  /* Larger icons than the W1Button default (20px) in the same 40px buttons. */
+  --w1-icon-size-m: var(--flipbook-toolbar-icon-size, 24px);
+}
+
+.toolsVertical {
+  flex-direction: column;
+}
+
+/* Same footprint and corner radius as the viewer's ‹ › buttons, no frame. */
+.tools .tool {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--w1-flipbook-radius, 8px);
+}
+
+/* W1Button's hover rule outranks its pressed rule; keep an active toggle
+   highlighted while hovered. */
+.tools .tool.tool[aria-pressed='true']:hover {
+  background: var(--w1-flipbook-control-hover, #e6e4df);
+  color: var(--w1-flipbook-accent, #1c1b1a);
+}
+
+.bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 12px;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-bottom: 1px solid var(--w1-flipbook-border, #b9b5ad);
+  border-radius: var(--w1-flipbook-radius, 8px) var(--w1-flipbook-radius, 8px) 0 0;
+}

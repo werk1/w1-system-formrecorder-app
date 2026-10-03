@@ -1,0 +1,430 @@
+/* Main content container styles */
+.mainContent {
+	width: 100%;
+}
+
+.mainContentVisible {
+	visibility: visible;
+}
+
+.mainContentHidden {
+	visibility: hidden;
+}
+
+
+/* Content Block 0 */
+.contentBlockContainer {
+	position: relative;
+	background-color: var(--col_backgroundW1);
+	left: 0;
+	width: 100vw;
+	height: auto;
+	padding: 0;
+	/* Auto height instead of fixed */
+	min-height: max(400px, min-content);
+}
+
+.contentBlockContainer .textContent {
+	position: relative;
+	width: 100%;
+	display: flex;
+	padding-left: 5vw;
+	padding-right: 27vw;
+	padding-top: 3vh;
+	padding-bottom: 3vh;
+	flex-direction: column;
+	justify-content: left;
+}
+
+.contentBlockContainer .textContent .copy1 {
+	letter-spacing: 0em;
+	word-spacing: 0em;
+	/* Existing styles if any */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Keep your desired negative spacing */
+	-webkit-font-smoothing: antialiased;
+	/* Better text rendering */
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Enable kerning */
+	font-feature-settings: "kern";
+	/* Explicit kerning */
+}
+
+.contentBlockContainer .textContent .copy1 p {
+	font-family: var(--fontfamily_primary);
+	color: white;
+	opacity: 0.8;
+	text-align: left;
+	font-size: 1.28rem;
+	line-height: 1.23;
+	letter-spacing: 0.05em;
+	word-spacing: -0.03em;
+}
+
+
+
+/* Content Block 1 for standard 
+texting in W1VideoBlock*/
+.textContent {
+	position: relative;
+	width: 100%;
+	display: flex;
+	padding-top: 4vh;
+	padding-bottom: 4vh;
+	flex-direction: column;
+	justify-content: left;
+}
+
+.textContent .copy1 {
+	letter-spacing: 0em;
+	word-spacing: 0em;
+	/* Existing styles if any */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Keep your desired negative spacing */
+	-webkit-font-smoothing: antialiased;
+	/* Better text rendering */
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Enable kerning */
+	font-feature-settings: "kern";
+	/* Explicit kerning */
+}
+
+.textContent .copy1 p {
+	font-family: var(--fontfamily_primary);
+	color: white;
+	text-align: left;
+	font-size: 1.25rem;
+	line-height: 1.23;
+	letter-spacing: 0.04em;
+	word-spacing: -0.01em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+.textContent .copy1 p em {
+	font-family: var(--fontfamily_primary);
+	color: rgb(255, 255, 255);
+	text-align: left;
+	font-size: 1rem;
+	line-height: 1.23;
+	letter-spacing: 0.04em;
+	word-spacing: -0.01em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+.textContent .description p {
+	font-family: var(--fontfamily_primary);
+	color: rgb(255, 255, 255);
+	margin-top: 0px;
+	text-align: left;
+	font-size: 1.05em;
+	line-height: 1.2;
+	letter-spacing: 0.04em;
+	word-spacing: -0.01em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+.textContent .description p em {
+	font-size: 0.85em;
+	line-height: 1.2;
+	letter-spacing: 0.05em;
+}
+
+.textContent .copy1 h1 {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: -0.2em;
+	text-align: left;
+	color: white;
+	opacity: 0.6;
+	font-family: var(--fontfamily_primary);
+	font-size: clamp(4rem, 4rem + 0.75vw, 4rem);
+	line-height: 0.99;
+	font-weight: 300;
+	letter-spacing: -0.02em;
+	word-spacing: -0.02em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+.textContent .copy1 h2 {
+	font-family: var(--fontfamily_primary);
+	color: white;
+	opacity: 0.8;
+	text-align: left;
+	font-size: 1.3rem;
+	line-height: 1.23;
+	margin-top: 50px;
+	letter-spacing: 0.06em;
+	word-spacing: -0.01em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+.textContent .copy1 h6 {
+	margin-top: 0;
+	margin-bottom: 0;
+	text-align: center;
+	color: white;
+	font-family: var(--fontfamily_primary);
+	font-size: clamp(1.1rem, 1.1rem + 0.75vw, 1.3rem);
+	line-height: 1.2;
+	font-weight: 300;
+	letter-spacing: 0.01em;
+	word-spacing: -0.03em;
+	-webkit-hyphens: auto;
+	/* For Safari */
+	-ms-hyphens: auto;
+	hyphens: auto;
+	/* For IE/Edge */
+	/* etc */
+}
+
+/* iOS-specific adjustments for all .copy1 elements */
+@supports (-webkit-touch-callout: none) {
+
+	.contentBlockContainer .textContent .copy1 p {
+		letter-spacing: 0.045em;
+		word-spacing: -0.03em;
+		font-weight: 100;
+	}
+
+	.contentBlockContainer .textContent .copy1 h2 {
+		letter-spacing: 0.045em;
+		word-spacing: -0.03em;
+		font-weight: 100;
+	}
+
+	.textContent .copy1 {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		font-kerning: normal;
+		/* Base adjustments for all text in .copy1 */
+		letter-spacing: 0em;
+		word-spacing: 0em;
+		/* Subtle adjustment for all text */
+		font-weight: 300;
+		/* Slightly bolder weight on iOS */
+	}
+
+	.textContent .copy1 p {
+		letter-spacing: 0.04em;
+	}
+
+	.textContent .copy1 h1 {
+		letter-spacing: 0.04em;
+	}
+
+	.textContent .copy1 h6 {
+		letter-spacing: 0em;
+		font-weight: 300;
+		text-align: center;
+		line-height: 1.2;
+	}
+
+	.textContent .copy1 h2 {
+		letter-spacing: -0.04em;
+	}
+
+	.copy2 {
+		/* Existing styles if any */
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		font-kerning: normal;
+		/* Keep your desired negative spacing */
+	}
+
+	.copy2 h5 {
+		font-family: var(--fontfamily_primary);
+		font-weight: 100;
+		letter-spacing: -0.025em;
+	}
+
+	.copy2 h6 {
+		font-family: var(--fontfamily_primary);
+		font-weight: 100;
+		letter-spacing: 0em;
+	}
+
+	.landscapeContainer .overlayText {
+		/* Improved text rendering for iOS */
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		/* Slightly more prominent on iOS */
+		font-weight: 200;
+		/* Prevent text size adjustment */
+		letter-spacing: -0.02em;
+		word-spacing: -0.02em;
+		/* Add a subtle text shadow for better readability on iOS */
+		text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+		/* Positioning adjustment for iOS */
+		padding-top: 2px;
+	}
+}
+
+.footerTextContent {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.copy2 {
+	letter-spacing: 0em;
+	line-height: 1.25;
+	/* Existing styles if any */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Keep your desired negative spacing */
+	-webkit-font-smoothing: antialiased;
+	/* Better text rendering */
+	-moz-osx-font-smoothing: grayscale;
+	font-kerning: normal;
+	/* Enable kerning */
+	font-feature-settings: "kern";
+	/* Explicit kerning */
+}
+
+.copy2 h5 {
+	font-family: var(--fontfamily_primary);
+	font-weight: 300;
+	color: white;
+	opacity: 0.9;
+	text-align: center;
+	padding: 0;
+	width: 80vw;
+	margin: 0 auto 16px auto;
+	font-size: 1.2rem;
+	word-spacing: -0.01em;
+}
+
+.copy2 h6 {
+	font-family: var(--fontfamily_primary);
+	font-weight: 100;
+	color: white;
+	opacity: 0.6;
+	text-align: center;
+	margin: 0 auto 0 auto;
+	padding: 0;
+	width: 80vw;
+	font-size: 1.2rem;
+	word-spacing: -0.02em;
+}
+
+.contentBlockContainerVideo {
+	position: relative;
+	width: 100vw;
+	height: 90vw;
+	background-color: var(--col_backgroundW1);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.contentBlockContainerVideo .imageWrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.contentBlockContainerVideo .videoWrapper {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	overflow: hidden !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.videoPlayer {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.videoPlayer video {
+	object-fit: cover !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.landscapeContainer {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--col_backgroundW1);
+	z-index: 1000;
+	overflow: hidden;
+}
+
+.landscapeContainer .eggImage {
+	width: auto;
+	height: 40vh;
+	max-width: 90%;
+	position: absolute;
+	z-index: 1;
+}
+
+.landscapeContainer .overlayText {
+	position: absolute;
+	letter-spacing: -0.02em;
+	word-spacing: -0.02em;
+	top: 50%;
+	left: 50%;
+	font-family: var(--fontfamily_primary);
+	transform: translate(-50%, -50%);
+	text-align: center;
+	width: 90%;
+	color: var(--col_backgroundW1);
+	font-size: 1.2rem;
+	font-weight: 700;
+	z-index: 2;
+	pointer-events: none;
+	border-radius: 10px;
+}

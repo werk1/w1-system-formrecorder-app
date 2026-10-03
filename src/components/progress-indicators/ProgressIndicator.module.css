@@ -1,0 +1,210 @@
+/* ================================
+   CIRCULAR PROGRESS INDICATOR
+   ================================ */
+
+.circularContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.circularSvg {
+  transform: scale(1);
+  transition: transform 0.2s ease;
+}
+
+.circularProgress {
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.circularProgress.indeterminate {
+  animation: circularSpin 1.5s linear infinite;
+  stroke-dasharray: 90, 150;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+}
+
+/* Text removed - symbols only
+.overlayCircularText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--fontfamily_primary);
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  text-align: center;
+  line-height: 1;
+}
+*/
+
+/* ================================
+   BAR PROGRESS INDICATOR
+   ================================ */
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.barContainer {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.barProgress {
+  transition: width 0.3s ease;
+  transform-origin: left center;
+}
+
+.barProgress.indeterminateBar {
+  animation: barSlide 1.5s ease-in-out infinite;
+}
+
+/* Text removed - symbols only
+.overlayBarText {
+  font-family: var(--fontfamily_primary);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  line-height: 1;
+}
+*/
+
+/* ================================
+   SPINNER PROGRESS INDICATOR
+   ================================ */
+
+.spinnerContainer {
+  position: relative;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.spinnerContainer.indeterminateSpinner {
+  animation: spinnerPulse 1.2s ease-in-out infinite;
+}
+
+.spinnerBar {
+  background-color: rgba(255, 255, 255, 0.9);
+  transition: width 0.3s ease;
+  border-radius: inherit;
+}
+
+/* ================================
+   INDETERMINATE ANIMATIONS
+   ================================ */
+
+@keyframes circularSpin {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+@keyframes barSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes spinnerPulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ================================
+   RESPONSIVE ADJUSTMENTS
+   ================================ */
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Text removed - symbols only
+  .overlayCircularText {
+    font-size: 8px;
+  }
+
+  .overlayBarText {
+    font-size: 10px;
+  }
+  */
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  .circularProgress,
+  .barProgress,
+  .spinnerBar {
+    transition: none;
+  }
+
+  .circularSvg {
+    transition: none;
+  }
+
+  /* Disable indeterminate animations for accessibility */
+  .circularProgress.indeterminate,
+  .barProgress.indeterminateBar,
+  .spinnerContainer.indeterminateSpinner {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+
+  .overlayCircularText,
+  .overlayBarText {
+    color: white;
+    text-shadow: 0 0 2px black;
+  }
+}
+
+/* iOS-specific adjustments */
+@supports (-webkit-touch-callout: none) {
+
+  .overlayCircularText,
+  .overlayBarText {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-kerning: normal;
+  }
+}

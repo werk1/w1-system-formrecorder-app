@@ -1,0 +1,80 @@
+{
+  "name": "w1-system-formrecorder-app",
+  "version": "1.0.0",
+  "description": "PDF formrecorder",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build --webpack",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev --webpack",
+    "dev:docker": "node ./scripts/run-docker-dev.mjs",
+    "dev:docker:down": "node ./scripts/run-docker-dev.mjs down",
+    "dev:docker:logs": "node ./scripts/run-docker-dev.mjs logs",
+    "dev:docker:ps": "node ./scripts/run-docker-dev.mjs ps",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "update": "node scripts/workspace-update.mjs",
+    "backfill:videos": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/backfill-video-optimization.ts"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
+    "@payloadcms/db-mongodb": "3.86.0",
+    "@payloadcms/next": "3.86.0",
+    "@payloadcms/richtext-lexical": "3.86.0",
+    "@payloadcms/ui": "3.86.0",
+    "@react-spring/web": "^10.1.2",
+    "@werk1/w1-system-calendar": "file:../w1-system-calendar",
+    "@werk1/w1-system-carouselblock": "file:../w1-system-carouselblock",
+    "@werk1/w1-system-device-info": "file:../w1-system-device-info",
+    "@werk1/w1-system-flipbook": "file:../w1-system-flipbook",
+    "@werk1/w1-system-font-manager": "file:../w1-system-font-manager/packages/core",
+    "@werk1/w1-system-formrecorder": "file:../w1-system-formrecorder",
+    "@werk1/w1-system-gsap-gesture": "file:../w1-system-gsap-gesture",
+    "@werk1/w1-system-gsap-scroll": "file:../w1-system-gsap-scroll",
+    "@werk1/w1-system-imageblock": "file:../w1-system-imageblock",
+    "@werk1/w1-system-media-manager": "file:../w1-system-media-manager",
+    "@werk1/w1-system-timeline-engine": "file:../w1-system-timeline-engine",
+    "@werk1/w1-system-ui": "file:../w1-system-ui",
+    "@werk1/w1-system-widgets": "file:../w1-system-widgets",
+    "fflate": "0.8.2",
+    "fontkit": "2.0.4",
+    "graphql": "^16.13.2",
+    "gsap": "^3.15.0",
+    "next": "16.2.10",
+    "payload": "3.86.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sharp": "0.35.3",
+    "ua-parser-js": "^2.0.10",
+    "woff2-encode-wasm": "0.1.1",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "19.2.3",
+    "cross-env": "^10.1.0",
+    "typescript": "6.0.2"
+  },
+  "overrides": {
+    "dompurify": "3.4.12",
+    "postcss": "8.5.19"
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0",
+    "npm": ">=10"
+  },
+  "w1RuntimeApk": [
+    "poppler-utils",
+    "fontconfig",
+    "font-dejavu",
+    "font-liberation"
+  ]
+}

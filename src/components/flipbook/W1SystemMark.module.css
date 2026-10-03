@@ -1,0 +1,12 @@
+/* Wordmark ratio 297:60 (public/w1-logos/W1System.svg). */
+.mark {
+  display: block;
+  flex: none;
+  height: 13.2px;
+  /* On top of the status bar's own 12 px edge padding. */
+  margin-inline-end: 10px;
+  aspect-ratio: 297.131 / 60.402;
+  background: var(--flipbook-app-text, currentColor);
+  -webkit-mask: url('/w1-logos/W1System.svg') center / contain no-repeat;
+  mask: url('/w1-logos/W1System.svg') center / contain no-repeat;
+}

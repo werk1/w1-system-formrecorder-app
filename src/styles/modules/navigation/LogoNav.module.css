@@ -1,0 +1,56 @@
+
+.logoBase_deviceD,
+.logoBase_deviceDL {
+    position: fixed;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    flex-grow: 0;
+    z-index: 100;
+}
+
+.logoBase_deviceDS {
+    position: fixed;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    max-width: 50%;
+    z-index: 100;
+}
+
+.logoBase_devicePP {
+    position: fixed;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    max-width: 50%;
+    z-index: 100;
+}
+
+.logoBase_devicePL {
+    position: fixed;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 5px;
+        flex-grow: 0;
+        z-index: 100;
+}
+
+.logoObject_deviceD,
+.logoObject_deviceDL {
+    height: 45px;
+}
+
+.logoObject_deviceDS {
+    height: 45px;
+}
+
+.logoObject_devicePP {
+    height: 39px;
+}
+
+.logoObject_devicePL {
+    height: 39px;
+}
+
+

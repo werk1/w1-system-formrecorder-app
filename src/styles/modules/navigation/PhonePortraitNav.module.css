@@ -1,0 +1,152 @@
+.navBase {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 80%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    left: 0;
+    z-index: 10;
+    }
+
+.navBase ul {
+    display: flex;
+    flex-direction: row;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Hamburger Icon*/
+.navMenuIcon {
+    color: var(--col_menuIcons);
+    font-size: 170%;
+    background-color: transparent;
+    border: none;
+    padding: 10px;
+    touch-action: manipulation;
+}
+
+.popupBase {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    top: var(--measure_headerHeight_devicePP);
+    left: 0;
+    right: 0;
+    background-color: var(--col_backgroundDark);
+    opacity: 0.8;
+    max-height: var(--measure_navPopupMaxHeight_devicePP);
+    overflow: hidden;
+}
+
+.popupContentContainer {
+    padding-left: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 0px;
+    display: flex;
+    flex-direction: column;
+    height: var(--measure_navPopupMaxHeight_devicePP);
+}
+
+.popupContentContainer ul {
+    list-style-type: none;
+    height: 100%;
+    width: 100%;
+    padding-top: 0.7em;
+    padding-bottom: 0.7em;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+
+/* STYLE AGENT
+ * The Style Agent is a utility that generates CSS class names for different components
+ * of the navigation menu. It ensures consistent naming across different device types
+ * (desktop, phone-portrait, phone-landscape) by appending the device type to each class name.
+ *
+ * The Style Agent provides the following classes:
+ * - navlink_main_container: Styles for the main navigation container
+ * - navlink_main_item: Styles for main navigation links
+ * - navlink_main_navlink_sub_item: Styles for main navigation links that have submenus
+ * - navlink_main_navlink_sub_icon: Styles for the submenu indicator icon
+ * - navlink_sub_container: Styles for the submenu container when it's closed
+ * - navlink_sub_container_open: Styles for the submenu container when it's open
+ * - navlink_sub_item: Styles for individual items within the submenu
+ *
+ * These classes are used in combination with the device-specific suffix (e.g., _desktop_sm)
+ * to create the full class names used in the CSS below.
+ *
+ * The Style Agent helps maintain consistency and makes it easier to manage styles
+ * across different device types and components of the navigation menu.
+ * It is defined in the StyleAgent.ts file and imported where needed.
+ *
+ * Note: In this file, we're using the '_desktop_sm' suffix, which stands for desktop small.
+ * This is specific to the DesktopPopup component and its associated styles.
+ */
+
+.navlinkMainItem_devicePP {
+    font-family: var(--typo_navLink);
+    font-size: 150%;
+    flex:  1;
+    width: 100%;
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    padding-left: 30px;
+    padding-right: 25px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+/* Use the shared class name pattern */
+.navlinkMainItemActive_devicePP:where(.navlinkMainItem_devicePP) {
+    color: var(--col_navLinkActiveNegative);
+    font-weight: bolder;
+}
+
+.navlinkMainSubItem_devicePP {
+    font-family: var(--typo_navLink);    
+    font-size: 120%;
+    text-decoration: none;
+    color: rgb(175, 175, 175);
+    padding: 10px 20px;
+    display: block;
+    cursor: pointer;
+    width: 100%;
+}
+.navlinkSubItemActive_devicePP:where(.navlinkSubItem_devicePP)  {
+    color: var(--col_navLinkActiveNegative);
+}
+
+.navlinkMainSubIcon_devicePP {
+    color: var(--col_menuIcons);
+    font-size: 60%;
+    margin-left: 5px;
+}
+
+/* Styles for the submenu containers within the desktop popup */
+/* The .popup-container_desktop_sm prefix ensures these styles only apply to the desktop popup navigation */
+/* This approach allows for component-specific styling and prevents conflicts with other navigation components */
+
+.navlinkAnimatedSubContainer_devicePP {
+    max-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--col_backgroundDark);
+}
+
+.navlinkSubItem_devicePP {
+    font-family: var(--typo_navLink);
+    font-size: 100%;
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    display: flex;
+    width: 100%;
+    padding: 0 0 20px 40px;
+    margin: 0;
+}

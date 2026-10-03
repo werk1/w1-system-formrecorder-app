@@ -1,0 +1,46 @@
+FROM node:22-alpine
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Install Infisical CLI for production secret loading.
+# The entrypoint in docker-compose.yml wraps the app with `infisical run`.
+RUN npm install -g @infisical/cli
+
+# Pre-create .next for prerender cache permissions
+RUN mkdir .next && chown nextjs:nodejs .next
+
+# Copy the pre-staged standalone build context
+COPY --chown=nextjs:nodejs . .
+
+# Re-install platform-specific optional deps (sharp, @next/swc, etc.) for
+# the target platform (reinstall-optional-deps.sh also creates a minimal
+# package.json if one isn't present yet). Shared with Dockerfile_Migrator,
+# see that file for the rationale.
+COPY reinstall-optional-deps.sh /tmp/reinstall-optional-deps.sh
+RUN sh /tmp/reinstall-optional-deps.sh && rm -f /tmp/reinstall-optional-deps.sh
+
+COPY validate-runtime-packages.js /tmp/validate-runtime-packages.js
+RUN node /tmp/validate-runtime-packages.js && rm -f /tmp/validate-runtime-packages.js
+
+# Module runtime tools declared by the generated app (package.json
+# `w1RuntimeApk`, e.g. flipbook: poppler-utils + fonts). Apps without the
+# field install nothing extra.
+RUN APK="$(node -e "try{const p=require('/app/package.json');process.stdout.write((p.w1RuntimeApk||[]).join(' '))}catch{}")" && \
+    if [ -n "$APK" ]; then apk add --no-cache $APK; fi
+
+# Payload media lives on the ./media volume (MEDIA_STORAGE_ROOT, default /app/media),
+# never under public/ (multi_repo_build.sh removes public/media from the stage).
+RUN rm -rf /app/public/media && \
+    mkdir -p /app/media /app/app-font-assets && \
+    chown nextjs:nodejs /app/media /app/app-font-assets
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT=3000
+
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 node server.js"]

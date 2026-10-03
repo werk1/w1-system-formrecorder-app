@@ -1,0 +1,82 @@
+services:
+  mongo:
+    image: mongo:7
+    # Single-node replica set: App Font publication (and other Payload
+    # transactions) need a transactional connection.
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:${MONGO_PORT:-27018}:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - w1-system-formrecorder-app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }).ok }\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "127.0.0.1:${MONGO_EXPRESS_PORT:-8082}:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - w1-system-formrecorder-app-network
+
+
+  app:
+    # Dev toolchain image: build tools and the pinned npm version are baked in
+    # instead of being apk/npm-installed on every container start.
+    build:
+      context: ./docker/dev
+    image: w1-system-formrecorder-app-dev:local
+    working_dir: /workspace/w1-system-formrecorder-app
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/w1-system-formrecorder-app?replicaSet=rs0&directConnection=true}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-secret-change-me}
+      PAYLOAD_CONFIG_PATH: src/payload.config.ts
+      APP_FONTS_GOOGLE_API_KEY: ${APP_FONTS_GOOGLE_API_KEY:-}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3600}
+      NEXT_PUBLIC_SCROLL_DEBUG: ${NEXT_PUBLIC_SCROLL_DEBUG:-false}
+    ports:
+      - "${APP_PORT:-3600}:3000"
+    volumes:
+      # Mount entire parent dir for access to local @werk1/* packages
+      - ..:/workspace
+      # Explicit media/assets mapping
+      - ./media:/workspace/w1-system-formrecorder-app/media
+      - ./assets:/workspace/w1-system-formrecorder-app/assets
+      - ./app-font-assets:/workspace/w1-system-formrecorder-app/app-font-assets
+      # Named volumes keep Linux dependencies and the Next/Webpack cache across
+      # container recreation while keeping them out of the macOS bind mount.
+      # Anonymous volumes would be discarded on every down/up, throwing away the
+      # multi-GB .next/cache and forcing a full npm ci plus a cold compile.
+      - app-node-modules:/workspace/w1-system-formrecorder-app/node_modules
+      - app-next-cache:/workspace/w1-system-formrecorder-app/.next
+      # Persist the npm cache so npm ci does not re-download on a cold node_modules.
+      - app-npm-cache:/root/.npm
+    command: sh /workspace/w1-system-formrecorder-app/scripts/docker-dev-app.sh
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - w1-system-formrecorder-app-network
+
+networks:
+  w1-system-formrecorder-app-network:
+    driver: bridge
+
+volumes:
+  app-node-modules:
+  app-next-cache:
+  app-npm-cache:

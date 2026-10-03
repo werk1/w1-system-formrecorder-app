@@ -1,0 +1,49 @@
+# IDE
+.vscode/
+.idea/
+.codex
+
+# Dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+
+# Build
+/build
+/dist
+
+# Environment / Secrets
+.env
+.env.autodeploy
+.env*.local
+.npmrc
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Payload generated artifacts
+src/payload-types.ts
+src/app/(payload)/admin/importMap.js
+
+# Media / DB
+/media
+/public/media
+/mongo-data
+/data
+/app-font-assets
+
+# Workspace transfer bundles
+/_bundles
+
+# Misc
+.DS_Store
+Thumbs.db
+*.pem

@@ -1,0 +1,45 @@
+/* Colours come from the viewer theme. The rail sits on the toolbar colour;
+   each tile has a thin outline, so white pages keep a visible edge. */
+.rail {
+  padding: 8px 0;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-top: 1px solid var(--w1-flipbook-border, #b9b5ad);
+  border-radius: 0 0 var(--w1-flipbook-radius, 8px) var(--w1-flipbook-radius, 8px);
+  --w1-carouselblock-strip-focus-color: var(--w1-flipbook-focus-ring, #1a56db);
+  --w1-carouselblock-strip-focus-width: 3px;
+}
+
+/* Side arrangement: a column beside the pages (tile width + 2 × 8px). It
+   reaches the screen edge; the tiles stay clear of the notch / Dynamic Island
+   (right), the status bar and the home indicator. */
+.railVertical {
+  height: 100%;
+  width: calc(var(--w1-flipbook-side-strip-width, 112px) + env(safe-area-inset-right, 0px));
+  padding: env(safe-area-inset-top, 0px) calc(8px + env(safe-area-inset-right, 0px))
+    env(safe-area-inset-bottom, 0px) 8px;
+  border-top: 0;
+  border-left: 1px solid var(--w1-flipbook-border, #b9b5ad);
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+/* A tile is one page or two equal book-format cells; pages are never cropped. */
+.tile {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--w1-flipbook-paper, #f7f4ee);
+}
+
+.cell {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.cell img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

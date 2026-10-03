@@ -1,0 +1,150 @@
+/* Neutral Rich Text Renderer Styles */
+/* This provides a completely neutral base with only essential text styling */
+/* This is the core rich text renderer for the W1 system */
+
+/* Neutral container - no constraints, inherits layout behavior */
+.richTextContainer {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  width: 100%;
+  display: block;
+}
+
+/* Default text style - minimal, neutral styling */
+.richTextDefaultStyle {
+  color: var(--col_text, #000000);
+  font-family: var(--typo_body, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Basic heading styles - neutral sizes without opinionated spacing */
+.richTextDefaultStyle .h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+.richTextDefaultStyle .h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+  padding: 0;
+}
+
+.richTextDefaultStyle .h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+  padding: 0;
+}
+
+.richTextDefaultStyle .h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+}
+
+.richTextDefaultStyle .h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+}
+
+.richTextDefaultStyle .h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+}
+
+/* Neutral paragraph styles */
+.richTextDefaultStyle .paragraph {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Basic text formatting - inherits color and font */
+.richTextDefaultStyle .strong {
+  font-weight: 700;
+}
+
+.richTextDefaultStyle .italic {
+  font-style: italic;
+}
+
+.richTextDefaultStyle .underline {
+  text-decoration: underline;
+}
+
+.richTextDefaultStyle .strikethrough {
+  text-decoration: line-through;
+}
+
+/* Neutral link styles */
+.richTextDefaultStyle .link {
+  color: var(--col_link, #0066cc);
+  text-decoration: underline;
+}
+
+.richTextDefaultStyle .link:hover {
+  color: var(--col_link_hover, #0052a3);
+}
+
+/* Basic list styles - minimal spacing */
+.richTextDefaultStyle .ul,
+.richTextDefaultStyle .ol {
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+}
+
+.richTextDefaultStyle .li {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* Neutral blockquote */
+.richTextDefaultStyle .blockquote {
+  margin: 0;
+  padding: 0;
+  font-style: italic;
+}
+
+/* Text alignment utilities */
+.richTextDefaultStyle .alignLeft {
+  text-align: left;
+}
+
+.richTextDefaultStyle .alignCenter {
+  text-align: center;
+}
+
+.richTextDefaultStyle .alignRight {
+  text-align: right;
+}
+
+.richTextDefaultStyle .alignJustify {
+  text-align: justify;
+}
+
+/* Line break */
+.richTextDefaultStyle .lineBreak {
+  display: block;
+  margin: 0;
+  padding: 0;
+}

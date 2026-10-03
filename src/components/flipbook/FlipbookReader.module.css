@@ -1,0 +1,100 @@
+/*
+ * Reader frame. The structure is picked once in FlipbookReader
+ * (data-reader-layout: default | phonePortrait | phoneLandscape); the viewer
+ * inside stays fluid and measures its own area in every layout.
+ *
+ * Per-device tuning goes into the device sections below:
+ *   :global(.w1-flipbook_devicePP)    phone portrait (all sizes)
+ *   :global(.w1-flipbook_devicePL)    phone landscape (all sizes)
+ *   :global(.w1-flipbook_devicePPSM)  / PPXL / PLSM / PLXL size variants
+ */
+/*
+ * Safe areas (viewport-fit=cover): the reader keeps all four insets clear
+ * (notch / Dynamic Island, status bar, home indicator). The inset strips use
+ * the toolbar colour, so they continue the top bar above and the status bar
+ * below. Phone landscape lets its columns bleed to the edges instead and pads
+ * the side bar and the rail from the inside (see the PL section).
+ */
+.reader {
+  /* Pinned to the visible viewport: a full-screen reader, not a document.
+     iOS otherwise nudges the page a few pixels when the toolbar collapses. */
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  background: var(--w1-flipbook-toolbar, #ffffff);
+}
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+  /* Status bar at about 2/3 of the top bar: header 56px, slim bar 48px. */
+  --w1-flipbook-status-height: 32px;
+  /* Page counter in a light weight next to the bold name and issue. */
+  --w1-flipbook-status-font-weight: 300;
+}
+
+.reader[data-reader-chrome='header'] .viewer {
+  --w1-flipbook-status-height: 36px;
+}
+
+/* Start of the status bar: client name (bold), issue (bold, a little
+   smaller), then the page counter (light, set on the viewer below). Name and
+   issue are cut with an ellipsis when the bar gets narrow, the name first. */
+.statusName,
+.statusIssue {
+  min-width: 0;
+  /* With the bar's own 8px gap: clear spacing instead of separators. */
+  margin-inline-end: 6px;
+  overflow: hidden;
+  font-weight: 700;
+  color: var(--w1-flipbook-text, #1c1b1a);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusName {
+  flex: 0 100 auto;
+}
+
+.statusIssue {
+  flex: 0 10 auto;
+  font-size: 0.9em;
+}
+
+/*
+ * Phone sections start with today's values; each is designed on its own from
+ * here on. Size variants override inside their section, e.g.
+ * .reader:global(.w1-flipbook_devicePLSM) .viewer { ... }
+ */
+
+/* ---- Phone portrait (PP) ---------------------------------------------- */
+
+.reader:global(.w1-flipbook_devicePP) .viewer {
+  --w1-flipbook-status-height: 32px;
+}
+
+.reader:global(.w1-flipbook_devicePP)[data-reader-chrome='header'] .viewer {
+  --w1-flipbook-status-height: 36px;
+}
+
+/* ---- Phone landscape (PL) --------------------------------------------- */
+/* Side arrangement: bar (pictogram, counter, icons at the bottom) | pages |
+   vertical rail. No logo panel and no status bar, so the double spread
+   keeps its width. */
+
+/* Columns bleed to the screen edges; the side bar pads itself on the left,
+   top and bottom, the rail on the right, top and bottom (safe areas). */
+.reader:global(.w1-flipbook_devicePL) {
+  padding: 0;
+}
+
+.reader:global(.w1-flipbook_devicePL) .viewer {
+  --flipbook-side-bar-width: 64px;
+  --flipbook-pictogram-size: 44px;
+  /* 128px tiles + 2 × 8px padding (FlipbookThumbnailRail VERTICAL_THUMB_WIDTH_PX). */
+  --w1-flipbook-side-strip-width: 144px;
+}
