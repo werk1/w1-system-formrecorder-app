@@ -25,6 +25,8 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     searchNoResults: 'Keine Treffer.',
     searchError: 'Die Suche ist fehlgeschlagen.',
     searchPage: (page) => `S. ${page}`,
+    searchCopy: 'Kopieren',
+    searchCopied: 'Kopiert',
   },
   en: {
     previous: 'Previous page',
@@ -50,6 +52,8 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     searchNoResults: 'No results.',
     searchError: 'Search failed.',
     searchPage: (page) => `p. ${page}`,
+    searchCopy: 'Copy',
+    searchCopied: 'Copied',
   },
 }
 

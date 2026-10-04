@@ -6,10 +6,14 @@ export type FlipbookSearchHit = {
   pageIndex: number
   snippet: string
   rect?: { x: number; y: number; w: number; h: number }
+  /** Full text of the block, for selecting and copying it in the reader. */
+  text?: string
+  /** Line count of the block (sizes the selectable text layer). */
+  lines?: number
 }
 
 type Rec = Record<string, unknown>
-type Prepared = { index: W1FormSearchIndex; rects: Map<string, FlipbookSearchHit['rect']> }
+type Prepared = { index: W1FormSearchIndex; blocks: Map<string, Pick<FlipbookSearchHit, 'rect' | 'text' | 'lines'>> }
 
 const MAX_QUERY = 100
 const MAX_HITS = 50
@@ -90,9 +94,11 @@ async function prepare(payload: Payload, flipbook: Rec): Promise<Prepared | null
     }
   }
 
-  const rects = new Map<string, FlipbookSearchHit['rect']>()
-  for (const page of source.pages) for (const block of page.blocks) rects.set(block.id, block.rect)
-  const prepared = { index: buildSearchIndex(source), rects }
+  const blocks: Prepared['blocks'] = new Map()
+  for (const page of source.pages) {
+    for (const block of page.blocks) blocks.set(block.id, { rect: block.rect, text: block.text, lines: Math.max(1, block.childIds?.length ?? 1) })
+  }
+  const prepared = { index: buildSearchIndex(source), blocks }
   cache.set(key, prepared)
   while (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value as string)
   return prepared
@@ -120,7 +126,7 @@ export async function searchPublishedFlipbook(payload: Payload, slug: string, qu
   return searchIndex(prepared.index, query.slice(0, MAX_QUERY))
     .slice(0, MAX_HITS)
     .map((hit) => {
-      const rect = prepared.rects.get(hit.blockId)
-      return { pageIndex: hit.pageIndex, snippet: hit.snippet, ...(rect ? { rect } : {}) }
+      const block = prepared.blocks.get(hit.blockId)
+      return { pageIndex: hit.pageIndex, snippet: hit.snippet, ...(block ?? {}) }
     })
 }
