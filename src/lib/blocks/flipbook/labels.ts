@@ -20,6 +20,11 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     spreadDouble: 'Doppelseitenansicht',
     thumbnailSpread: (first, last) => `Seiten ${first}–${last}`,
     counter: (range, count) => `Seite ${range} | ${count}`,
+    search: 'Suche',
+    searchPlaceholder: 'Im Dokument suchen …',
+    searchNoResults: 'Keine Treffer.',
+    searchError: 'Die Suche ist fehlgeschlagen.',
+    searchPage: (page) => `S. ${page}`,
   },
   en: {
     previous: 'Previous page',
@@ -40,6 +45,11 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     spreadDouble: 'Two page view',
     thumbnailSpread: (first, last) => `Pages ${first}–${last}`,
     counter: (range, count) => `Page ${range} | ${count}`,
+    search: 'Search',
+    searchPlaceholder: 'Search the document …',
+    searchNoResults: 'No results.',
+    searchError: 'Search failed.',
+    searchPage: (page) => `p. ${page}`,
   },
 }
 

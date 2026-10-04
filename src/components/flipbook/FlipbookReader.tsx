@@ -5,6 +5,7 @@ import { createFlipbookLabels } from '@/lib/blocks/flipbook/labels'
 import type { FlipbookMenuItem } from '@/lib/blocks/flipbook/resolveFlipbookBlockInput'
 import type { ClientLogo } from '@/lib/theme/clientLogoVariants'
 import { useBoundStore } from '@/stores/boundStore'
+import { useFlipbookSearch } from '@/lib/blocks/flipbook/search'
 import { W1FlipbookBlock, type W1FlipbookInput, type W1FlipbookToolbarControls } from '@werk1/w1-system-flipbook'
 import { devCurlTuning, IS_DEV } from './dev/devCurlTuning'
 import { FlipbookHeader } from './FlipbookHeader'
@@ -59,6 +60,7 @@ export function FlipbookReader({ input, locale, showHeader = false, items = [], 
   // Phone portrait: compact counter ("58–59 | 78") in the status bar.
   const compactCounter = layout === 'phonePortrait'
   const pageWord = clientLogo?.pageWord
+  const search = useFlipbookSearch(input.slug)
   const labels = useMemo(
     () => createFlipbookLabels(locale, { compactCounter, pageWord }),
     [locale, compactCounter, pageWord],
@@ -139,6 +141,7 @@ export function FlipbookReader({ input, locale, showHeader = false, items = [], 
           onPageChange={handlePageChange}
           deviceInfo={deviceInfo}
           renderThumbnails={renderFlipbookThumbnailRail}
+          search={search}
           renderToolbar={renderToolbar}
           renderNavigation={side ? renderFlipbookNavigationColumn : renderFlipbookNavigationWidget}
           status={W1_SYSTEM_MARK}

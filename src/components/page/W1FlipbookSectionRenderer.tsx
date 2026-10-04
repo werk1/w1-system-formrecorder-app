@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { createFlipbookLabels } from '@/lib/blocks/flipbook/labels'
+import { useFlipbookSearch } from '@/lib/blocks/flipbook/search'
 import { useBoundStore } from '@/stores/boundStore'
 import { W1FlipbookBlock, type W1FlipbookInput } from '@werk1/w1-system-flipbook'
 import { devCurlTuning, IS_DEV } from '@/components/flipbook/dev/devCurlTuning'
@@ -17,6 +18,7 @@ type W1FlipbookSectionRendererProps = {
 export function W1FlipbookSectionRenderer({ input, locale }: W1FlipbookSectionRendererProps) {
   const deviceInfo = useBoundStore((state) => state.device)
   const labels = useMemo(() => createFlipbookLabels(locale), [locale])
+  const search = useFlipbookSearch(input.slug)
 
   return (
     <W1FlipbookBlock
@@ -24,6 +26,7 @@ export function W1FlipbookSectionRenderer({ input, locale }: W1FlipbookSectionRe
       labels={labels}
       deviceInfo={deviceInfo}
       renderThumbnails={renderFlipbookThumbnailRail}
+      search={search}
       renderToolbar={renderFlipbookToolbarBar}
       renderNavigation={renderFlipbookNavigationWidget}
       curlTuning={IS_DEV ? devCurlTuning : undefined}
