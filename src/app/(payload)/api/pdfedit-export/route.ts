@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import { recordsToCsv } from '@werk1/w1-system-pdfedit'
+import { recordsToCsv } from '@werk1/w1-system-pdfedit/export'
 import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 
 export const runtime = 'nodejs'
