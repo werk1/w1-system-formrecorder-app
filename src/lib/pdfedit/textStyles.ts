@@ -18,7 +18,7 @@ const hasBlocks = (model: W1FormTextModel): boolean => model.pages.some((p) => p
 export async function ensureTextStyles(payload: Payload, flipbook: FlipbookLike): Promise<W1FormTextModel | null> {
   const model = flipbook.textModel as W1FormTextModel | null
   if (!model || !Array.isArray(model.pages)) return null
-  if (!hasBlocks(model) || model.styled) return model
+  if (!hasBlocks(model) || (model.styled && model.spanned)) return model
   const sourceId = relationId(flipbook.publishedSourcePdf)
   const staticDir = payload.collections.media?.config?.upload?.staticDir
   if (!sourceId || !staticDir) return model
