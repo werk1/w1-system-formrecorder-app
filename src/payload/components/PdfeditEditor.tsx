@@ -52,6 +52,8 @@ const LABELS: W1PdfEditLabels = {
   applyPdf: 'PDF aktualisieren',
   applyPdfBusy: 'PDF wird aktualisiert …',
   styleBar: 'Stile des PDFs',
+  dropStylesHint: 'Achtung: Stile gehen verloren, wenn der Text hier im Panel geändert wird. Zum Behalten den Text direkt über dem PDF bearbeiten.',
+  dropStylesConfirm: 'Wenn du den Text hier änderst, gehen die Stile dieses Blocks verloren (fett, Farbe usw.). Zum Behalten den Text über dem PDF bearbeiten. Trotzdem ändern?',
   styleReset: 'Blockstil',
   mergeBlocks: (count) => `Blöcke verbinden (${count})`,
   splitBlock: 'Verbundenen Block trennen',
