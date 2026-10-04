@@ -57,6 +57,8 @@ const LABELS: W1PdfEditLabels = {
   styleReset: 'Blockstil',
   mergeBlocks: (count) => `Blöcke verbinden (${count})`,
   splitBlock: 'Verbundenen Block trennen',
+  splitHint: 'Verbundener Block: „Trennen“ stellt die Ursprungsblöcke wieder her.',
+  splitBlockedByRecord: (name) => `Dieser verbundene Block gehört zum Datensatz „${name}“ und lässt sich nicht trennen. Zuerst aus dem Datensatz entfernen.`,
   autoMerge: 'Absätze automatisch verbinden',
   autoMergeNone: 'Keine getrennten Absätze gefunden',
   restorePage: 'Seite auf Original zurücksetzen',
