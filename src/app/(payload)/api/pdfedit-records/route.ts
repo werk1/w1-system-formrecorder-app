@@ -26,7 +26,30 @@ async function authenticateAdmin(payload: Payload, request: NextRequest): Promis
   }
 }
 
-type BlockEntry = { blockId: string; name?: string; text: string; edited?: boolean }
+type SpanEntry = { text: string; style?: { fontFamily?: string; bold?: true; italic?: true; color?: string } }
+type BlockEntry = { blockId: string; name?: string; text: string; edited?: boolean; spans?: SpanEntry[] }
+
+/** Validates styled spans; they are kept only when their texts join to exactly `text`. */
+function sanitizeSpans(raw: unknown, text: string): SpanEntry[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const out: SpanEntry[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') return undefined
+    const entry = item as Record<string, unknown>
+    if (typeof entry.text !== 'string') return undefined
+    const style = entry.style && typeof entry.style === 'object' ? (entry.style as Record<string, unknown>) : null
+    const clean: NonNullable<SpanEntry['style']> = {}
+    if (style) {
+      if (typeof style.fontFamily === 'string' && /^[\w.+ -]{1,80}$/.test(style.fontFamily)) clean.fontFamily = style.fontFamily
+      if (style.bold) clean.bold = true
+      if (style.italic) clean.italic = true
+      if (typeof style.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(style.color)) clean.color = style.color.toLowerCase()
+    }
+    out.push(Object.keys(clean).length ? { text: entry.text, style: clean } : { text: entry.text })
+  }
+  if (out.map((s) => s.text).join('') !== text || !out.some((s) => s.style)) return undefined
+  return out
+}
 
 /** Coerces the incoming blocks payload into the contracted record-block shape. */
 function sanitizeBlocks(raw: unknown): BlockEntry[] {
@@ -39,11 +62,14 @@ function sanitizeBlocks(raw: unknown): BlockEntry[] {
     const blockId = typeof entry.blockId === 'string' ? entry.blockId : ''
     if (!blockId || seen.has(blockId)) continue
     seen.add(blockId)
+    const text = typeof entry.text === 'string' ? entry.text : String(entry.text ?? '')
+    const spans = sanitizeSpans(entry.spans, text)
     out.push({
       blockId,
       ...(typeof entry.name === 'string' && entry.name.trim() ? { name: entry.name.trim() } : {}),
-      text: typeof entry.text === 'string' ? entry.text : String(entry.text ?? ''),
+      text,
       ...(entry.edited ? { edited: true } : {}),
+      ...(spans ? { spans } : {}),
     })
   }
   return out

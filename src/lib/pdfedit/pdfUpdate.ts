@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import type { Payload } from 'payload'
+import { hasStyledSpans, spansText } from '@werk1/w1-system-pdfedit/export'
 import { applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1PdfFontProvider, W1PdfTextEdit } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1FormTextBlock, W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
@@ -84,12 +85,15 @@ export function collectEdits(model: W1FormTextModel, records: readonly W1PdfEdit
     for (const block of record.blocks) {
       const source = index.get(block.blockId)
       if (!source || source.level !== 'block') continue
-      if (!block.edited || sameText(block.text, source.text)) continue
+      // A restyle alone (same text, styled spans) is an edit too.
+      const styled = hasStyledSpans(block.spans) && sameText(spansText(block.spans ?? []), block.text)
+      if (!block.edited || (sameText(block.text, source.text) && !styled)) continue
       edits.push({
         blockId: source.id,
         pageIndex: source.pageIndex,
         rect: source.rect,
         text: block.text,
+        ...(styled ? { spans: block.spans } : {}),
         style: source.style,
         lineCount: Math.max(1, source.childIds?.length ?? 1),
       })
@@ -110,9 +114,11 @@ export function resetPageBlocks(
     let touched = false
     const blocks = record.blocks.map((block) => {
       const source = index.get(block.blockId)
-      if (!source || source.pageIndex !== pageIndex || !(block.edited || block.text !== source.text)) return block
+      if (!source || source.pageIndex !== pageIndex || !(block.edited || block.text !== source.text || block.spans)) return block
       touched = true
-      return { ...block, text: source.text, edited: false }
+      const { spans: _spans, ...plain } = block
+      void _spans
+      return { ...plain, text: source.text, edited: false }
     })
     if (touched) changed.push({ ...record, blocks })
   }

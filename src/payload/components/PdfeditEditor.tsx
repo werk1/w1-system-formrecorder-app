@@ -51,6 +51,8 @@ const LABELS: W1PdfEditLabels = {
   charOverflow: (max) => `Mehr als ${max} Zeichen: der Rest wird beim Aktualisieren des PDFs abgeschnitten`,
   applyPdf: 'PDF aktualisieren',
   applyPdfBusy: 'PDF wird aktualisiert …',
+  styleBar: 'Stile des PDFs',
+  styleReset: 'Blockstil',
   mergeBlocks: (count) => `Blöcke verbinden (${count})`,
   splitBlock: 'Verbundenen Block trennen',
   autoMerge: 'Absätze automatisch verbinden',
