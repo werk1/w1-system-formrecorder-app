@@ -40,7 +40,7 @@ function ToolButton({
 
 /**
  * Viewer controls as W1 UI icon buttons (w1-system-ui `W1Button` + Lucide
- * icons): PDF, thumbnails, single/double page, zoom out/in, fullscreen.
+ * icons): PDF, thumbnails, single/double page, search, zoom out/in, fullscreen.
  */
 export function FlipbookToolbar({
   controls,
@@ -56,7 +56,7 @@ export function FlipbookToolbar({
   /** PDF link as an icon button (top bar). */
   showPdf?: boolean
 }) {
-  const { zoom, fullscreen, thumbnails, spread, labels, pdf } = controls
+  const { zoom, fullscreen, thumbnails, spread, search, labels, pdf } = controls
   return (
     <div className={orientation === 'vertical' ? `${styles.tools} ${styles.toolsVertical}` : styles.tools}>
       {showPdf && (
@@ -85,6 +85,9 @@ export function FlipbookToolbar({
           label={spread.mode === 'double' ? (labels.spreadSingle ?? 'Single page view') : (labels.spreadDouble ?? 'Two page view')}
           onClick={spread.toggle}
         />
+      )}
+      {search.enabled && (
+        <ToolButton icon="text_search" label={labels.search ?? 'Search'} onClick={search.toggle} pressed={search.open} />
       )}
       {zoom.enabled && (
         // One zoom step: the magnifier zooms in, and out again while zoomed.
