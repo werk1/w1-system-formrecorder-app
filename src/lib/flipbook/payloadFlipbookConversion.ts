@@ -52,6 +52,7 @@ type FlipbookDoc = {
   publishedRevision?: unknown
   publishedSourcePdf?: unknown
   pages?: Array<{ image?: unknown }> | null
+  textModel?: unknown
   cover?: unknown
 }
 
@@ -87,6 +88,38 @@ export const defaultFlipbookConverter: FlipbookConverter = {
   renderPage,
   extractTextLayout,
   extractStyleLayout,
+}
+
+const hasTextModel = (model: unknown): boolean =>
+  Boolean(model && typeof model === 'object' && Array.isArray((model as { pages?: unknown }).pages) && (model as { pages: unknown[] }).pages.length > 0)
+
+/**
+ * Text artifact of a revision (pdfedit/search): one bbox-layout extraction for
+ * the whole document, styled when the style extraction works. A failure must
+ * not break the flipbook conversion — it logs and returns `null`, and the next
+ * conversion can fill the model in.
+ */
+async function extractTextModel(
+  payload: Payload,
+  flipbookId: IdLike,
+  converter: FlipbookConverter,
+  filePath: string,
+  revision: string,
+): Promise<unknown> {
+  let textModel: unknown = null
+  try {
+    textModel = parseBboxLayout(await converter.extractTextLayout(filePath), { revision })
+  } catch (error) {
+    payload.logger.warn(`flipbook: text extraction for ${flipbookId} failed: ${String(error)}`)
+  }
+  if (textModel && converter.extractStyleLayout) {
+    try {
+      textModel = applyTextStyles(textModel as ReturnType<typeof parseBboxLayout>, await converter.extractStyleLayout(filePath))
+    } catch (error) {
+      payload.logger.warn(`flipbook: style extraction for ${flipbookId} failed: ${String(error)}`)
+    }
+  }
+  return textModel
 }
 
 export type FlipbookConversionOutcome =
@@ -263,6 +296,13 @@ export async function runFlipbookConversion(
       if (flipbook.status !== 'ready') {
         await updateFlipbook(payload, flipbookId, { status: 'ready', progress: null, errorMessage: null, sourceRevision: revision, sourceStamp: stamp })
       }
+      // Converted before text extraction existed (or the extraction failed):
+      // a restart fills in the text model of the published revision without
+      // touching its pages — search and the pdfedit editor depend on it.
+      if (!hasTextModel(flipbook.textModel)) {
+        const textModel = await extractTextModel(payload, flipbookId, converter, filePath, revision)
+        if (textModel) await updateFlipbook(payload, flipbookId, { textModel })
+      }
       return 'already-published'
     }
 
@@ -318,24 +358,7 @@ export async function runFlipbookConversion(
       return 'superseded'
     }
 
-    // Text artifact of the published revision (pdfedit/searchable PDF):
-    // one bbox-layout extraction for the whole document. A failure must not
-    // break the flipbook conversion — the pages are published without a
-    // text model and the next conversion can fill it in.
-    let textModel: unknown = null
-    try {
-      const textXml = await converter.extractTextLayout(filePath)
-      textModel = parseBboxLayout(textXml, { revision })
-    } catch (error) {
-      payload.logger.warn(`flipbook: text extraction for ${flipbookId} failed: ${String(error)}`)
-    }
-    if (textModel && converter.extractStyleLayout) {
-      try {
-        textModel = applyTextStyles(textModel as ReturnType<typeof parseBboxLayout>, await converter.extractStyleLayout(filePath))
-      } catch (error) {
-        payload.logger.warn(`flipbook: style extraction for ${flipbookId} failed: ${String(error)}`)
-      }
-    }
+    const textModel = await extractTextModel(payload, flipbookId, converter, filePath, revision)
 
     const previousRevision = typeof current.publishedRevision === 'string' ? current.publishedRevision : null
     await updateFlipbook(payload, flipbookId, {
