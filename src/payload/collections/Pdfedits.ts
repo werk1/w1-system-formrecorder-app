@@ -5,16 +5,16 @@ const adminOnly: Access = ({ req: { user } }) =>
   Boolean((user as { roles?: string[] } | null)?.roles?.includes("admin"));
 
 /**
- * Formrecorder documents bind a converted flipbook (page images + published
+ * Pdfedit documents bind a converted flipbook (page images + published
  * `textModel`). Editors capture entries on the rendered pages as ordered
- * records (`formrecords`): text blocks are assigned to records and named
- * afterwards in the package editor (`/admin/formrecorder`).
+ * records (`pdfeditrecords`): text blocks are assigned to records and named
+ * afterwards in the package editor (`/admin/pdfedit`).
  */
-export const Formrecorders: CollectionConfig = {
-  slug: "formrecorders",
+export const Pdfedits: CollectionConfig = {
+  slug: "pdfedits",
   labels: {
-    singular: { de: "Formrecorder", en: "Form recorder" },
-    plural: { de: "Formrecorder", en: "Form recorders" },
+    singular: { de: "Pdfedit", en: "PDF edit" },
+    plural: { de: "Pdfedit", en: "PDF edits" },
   },
   admin: {
     useAsTitle: "title",
@@ -44,7 +44,7 @@ export const Formrecorders: CollectionConfig = {
                   (value) => typeof value === "string" && value.trim().length > 0,
                 )
               : null;
-        data.slug = slugFromTitle(title) ?? generateRandomEditableKey("formrecorder");
+        data.slug = slugFromTitle(title) ?? generateRandomEditableKey("pdfedit");
         return data;
       },
     ],
@@ -55,7 +55,7 @@ export const Formrecorders: CollectionConfig = {
       type: "ui",
       admin: {
         components: {
-          Field: "/payload/components/FormrecorderEditorLink#FormrecorderEditorLink",
+          Field: "/payload/components/PdfeditEditorLink#PdfeditEditorLink",
         },
       },
     },

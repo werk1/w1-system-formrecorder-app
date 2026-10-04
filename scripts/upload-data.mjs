@@ -38,11 +38,11 @@ for (const line of readFileSync(ENV_FILE, 'utf8').split(/\r?\n/)) {
 const DEPLOY_SSH_HOST = process.env.DEPLOY_SSH_HOST || ''
 const DEPLOY_SSH_USER = process.env.DEPLOY_SSH_USER || ''
 const DEPLOY_SSH_PORT = process.env.DEPLOY_SSH_PORT || '22'
-const DEPLOY_SSH_DIR  = process.env.DEPLOY_SSH_DIR  || 'w1-system-formrecorder-app'
+const DEPLOY_SSH_DIR  = process.env.DEPLOY_SSH_DIR  || 'w1-system-pdfedit-app'
 const DEPLOY_SSH_KEY  = (process.env.DEPLOY_SSH_PRIVATE_KEY || '').replace(/^~/, homedir())
 const DEPLOY_SSH_PW   = process.env.DEPLOY_SSH_PASSWORD || ''
 
-const DB_NAME = 'w1-system-formrecorder-app'
+const DB_NAME = 'w1-system-pdfedit-app'
 
 function readProjectEnvValue(name, fallback) {
   const processValue = process.env[name]?.trim()

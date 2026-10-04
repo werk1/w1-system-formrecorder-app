@@ -1,7 +1,7 @@
 {
-  "name": "w1-system-formrecorder-app",
+  "name": "w1-system-pdfedit-app",
   "version": "1.0.0",
-  "description": "PDF formrecorder",
+  "description": "PDF pdfedit",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -33,7 +33,7 @@
     "@werk1/w1-system-device-info": "file:../w1-system-device-info",
     "@werk1/w1-system-flipbook": "file:../w1-system-flipbook",
     "@werk1/w1-system-font-manager": "file:../w1-system-font-manager/packages/core",
-    "@werk1/w1-system-formrecorder": "file:../w1-system-formrecorder",
+    "@werk1/w1-system-pdfedit": "file:../w1-system-pdfedit",
     "@werk1/w1-system-gsap-gesture": "file:../w1-system-gsap-gesture",
     "@werk1/w1-system-gsap-scroll": "file:../w1-system-gsap-scroll",
     "@werk1/w1-system-imageblock": "file:../w1-system-imageblock",

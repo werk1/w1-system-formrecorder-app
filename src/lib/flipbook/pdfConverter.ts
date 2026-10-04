@@ -174,7 +174,7 @@ export async function renderPage(
 /**
  * Extracts the document's text layer as `pdftotext -bbox-layout` XHTML
  * (page/flow/block/line/word with CropBox coordinates in points). The
- * formrecorder package parses this into `W1FormTextModel`; the conversion
+ * pdfedit package parses this into `W1FormTextModel`; the conversion
  * pipeline stores it alongside the published pages of a revision.
  */
 export async function extractTextLayout(filePath: string): Promise<string> {

@@ -14,11 +14,11 @@ export const dynamic = 'force-dynamic'
 const PAGE_SIZE = 24
 
 const COPY: Record<string, { title: string; empty: string; pages: string; prev: string; next: string }> = {
-  de: { title: 'Formrecorder', empty: 'Noch keine PDF-Dokumente veröffentlicht.', pages: 'Seiten', prev: 'Zurück', next: 'Weiter' },
-  en: { title: 'Formrecorder', empty: 'No PDF documents published yet.', pages: 'pages', prev: 'Previous', next: 'Next' },
+  de: { title: 'Pdfedit', empty: 'Noch keine PDF-Dokumente veröffentlicht.', pages: 'Seiten', prev: 'Zurück', next: 'Weiter' },
+  en: { title: 'Pdfedit', empty: 'No PDF documents published yet.', pages: 'pages', prev: 'Previous', next: 'Next' },
 }
 
-export const metadata: Metadata = { title: 'Formrecorder' }
+export const metadata: Metadata = { title: 'Pdfedit' }
 
 type ListedFlipbook = {
   id: string | number

@@ -8,12 +8,12 @@
 
 | Feld | Wert |
 |---|---|
-| Projektname | `w1-system-formrecorder-app` |
-| Zielverzeichnis | `<workspace>/w1-system-formrecorder-app` |
-| Beschreibung | PDF formrecorder |
+| Projektname | `w1-system-pdfedit-app` |
+| Zielverzeichnis | `<workspace>/w1-system-pdfedit-app` |
+| Beschreibung | PDF pdfedit |
 | Docker Registry | `reg.werk1.at` |
-| Image | `w1-system-formrecorder-app` |
-| Repo URL | `git@werk1.github.com:werk1/w1-system-formrecorder-app.git` |
+| Image | `w1-system-pdfedit-app` |
+| Repo URL | `git@werk1.github.com:werk1/w1-system-pdfedit-app.git` |
 | Git Branch | `main` |
 | GitHub Org | `werk1` |
 | SSH Host | `–` |
@@ -28,7 +28,7 @@
 
 ### 2.1 Direkt ausgewählt
 
-- **`formrecorder`**
+- **`pdfedit`**
 
 ### 2.2 Automatisch aufgelöste Abhängigkeiten (Auto-Deps)
 
@@ -36,7 +36,7 @@
 
 ### 2.3 Alle aktiven Module
 
-- `formrecorder`
+- `pdfedit`
 - `flipbook`
 
 ---
@@ -47,7 +47,7 @@
 
 | Modus | Pakete |
 |---|---|
-| **Workspace** (file:../, lokal vorhanden) | w1-system-device-info, w1-system-gsap-gesture, w1-system-gsap-scroll, w1-system-timeline-engine, w1-system-imageblock, w1-system-media-manager, w1-system-carouselblock, w1-system-font-manager, w1-system-formrecorder, w1-system-flipbook, w1-system-ui, w1-system-widgets, w1-system-calendar |
+| **Workspace** (file:../, lokal vorhanden) | w1-system-device-info, w1-system-gsap-gesture, w1-system-gsap-scroll, w1-system-timeline-engine, w1-system-imageblock, w1-system-media-manager, w1-system-carouselblock, w1-system-font-manager, w1-system-pdfedit, w1-system-flipbook, w1-system-ui, w1-system-widgets, w1-system-calendar |
 
 ### 3.1 @werk1-Pakete – Geklont (dependencies)
 
@@ -59,7 +59,7 @@
 - `@werk1/w1-system-media-manager` → `file:../w1-system-media-manager`
 - `@werk1/w1-system-carouselblock` → `file:../w1-system-carouselblock`
 - `@werk1/w1-system-font-manager` → `file:../w1-system-font-manager`
-- `@werk1/w1-system-formrecorder` → `file:../w1-system-formrecorder`
+- `@werk1/w1-system-pdfedit` → `file:../w1-system-pdfedit`
 - `@werk1/w1-system-flipbook` → `file:../w1-system-flipbook`
 - `@werk1/w1-system-ui` → `file:../w1-system-ui`
 - `@werk1/w1-system-widgets` → `file:../w1-system-widgets`
@@ -75,60 +75,60 @@ _(keine)_
 
 ### Modul-Dateien (aus core-v2)
 
-- `../w1-system-formrecorder-app/src/payload/collections/Formrecorders.ts`
-- `../w1-system-formrecorder-app/src/payload/collections/Formrecords.ts`
-- `../w1-system-formrecorder-app/src/payload/components/FormrecorderEditor.tsx`
-- `../w1-system-formrecorder-app/src/payload/components/FormrecorderEditorLink.tsx`
-- `../w1-system-formrecorder-app/src/app/(payload)/api/formrecorder-data/route.ts`
-- `../w1-system-formrecorder-app/src/app/(payload)/api/formrecorder-records/route.ts`
-- `../w1-system-formrecorder-app/src/app/(payload)/api/formrecorder-export/route.ts`
-- `../w1-system-formrecorder-app/src/payload/collections/Flipbooks.ts`
-- `../w1-system-formrecorder-app/src/payload/components/FlipbookConvertButton.tsx`
-- `../w1-system-formrecorder-app/src/payload/components/FlipbookEmbedLink.tsx`
-- `../w1-system-formrecorder-app/src/app/(payload)/api/flipbook-convert/route.ts`
-- `../w1-system-formrecorder-app/src/lib/flipbook/README.md`
-- `../w1-system-formrecorder-app/src/lib/flipbook/index.ts`
-- `../w1-system-formrecorder-app/src/lib/flipbook/pdfConverter.ts`
-- `../w1-system-formrecorder-app/src/lib/flipbook/payloadFlipbookConversion.ts`
-- `../w1-system-formrecorder-app/src/lib/flipbook/cleanup.ts`
-- `../w1-system-formrecorder-app/src/lib/flipbook/cover.ts`
-- `../w1-system-formrecorder-app/src/payload/blocks/FlipbookSection.ts`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookHeader.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookHeader.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookHome.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookNavigationWidget.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookNavigationWidget.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookReader.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookReader.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookSideChrome.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookSideChrome.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookThumbnailRail.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookThumbnailRail.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookToolbar.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/FlipbookToolbar.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/W1SystemMark.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/W1SystemMark.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/dev/ColorSchemeEditor.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/dev/CurlTuningPanel.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/dev/DevTools.module.css`
-- `../w1-system-formrecorder-app/src/components/flipbook/dev/DevToolsButton.tsx`
-- `../w1-system-formrecorder-app/src/components/flipbook/dev/devCurlTuning.ts`
-- `../w1-system-formrecorder-app/src/components/flipbook/readerDevice.ts`
-- `../w1-system-formrecorder-app/src/components/page/W1FlipbookSectionRenderer.tsx`
-- `../w1-system-formrecorder-app/src/lib/blocks/flipbook/config.ts`
-- `../w1-system-formrecorder-app/src/lib/blocks/flipbook/labels.ts`
-- `../w1-system-formrecorder-app/src/lib/blocks/flipbook/locale.ts`
-- `../w1-system-formrecorder-app/src/lib/blocks/flipbook/resolveFlipbookBlockInput.ts`
-- `../w1-system-formrecorder-app/src/lib/blocks/flipbook/types.ts`
-- `../w1-system-formrecorder-app/src/lib/theme/appColorScheme.ts`
-- `../w1-system-formrecorder-app/src/lib/theme/clientLogo.ts`
-- `../w1-system-formrecorder-app/src/lib/theme/clientLogoVariants.ts`
-- `../w1-system-formrecorder-app/src/lib/theme/colorSchemeTokens.ts`
-- `../w1-system-formrecorder-app/src/app/(frontend)/flipbooks/[slug]/page.tsx`
-- `../w1-system-formrecorder-app/src/app/(frontend)/flipbooks/flipbooks.module.css`
-- `../w1-system-formrecorder-app/src/app/(frontend)/flipbooks/page.tsx`
-- `../w1-system-formrecorder-app/src/app/(frontend)/theme/palettes.css`
-- `../w1-system-formrecorder-app/src/payload/collections/ColorSchemes.ts`
+- `../w1-system-pdfedit-app/src/payload/collections/Pdfedits.ts`
+- `../w1-system-pdfedit-app/src/payload/collections/Pdfeditrecords.ts`
+- `../w1-system-pdfedit-app/src/payload/components/PdfeditEditor.tsx`
+- `../w1-system-pdfedit-app/src/payload/components/PdfeditEditorLink.tsx`
+- `../w1-system-pdfedit-app/src/app/(payload)/api/pdfedit-data/route.ts`
+- `../w1-system-pdfedit-app/src/app/(payload)/api/pdfedit-records/route.ts`
+- `../w1-system-pdfedit-app/src/app/(payload)/api/pdfedit-export/route.ts`
+- `../w1-system-pdfedit-app/src/payload/collections/Flipbooks.ts`
+- `../w1-system-pdfedit-app/src/payload/components/FlipbookConvertButton.tsx`
+- `../w1-system-pdfedit-app/src/payload/components/FlipbookEmbedLink.tsx`
+- `../w1-system-pdfedit-app/src/app/(payload)/api/flipbook-convert/route.ts`
+- `../w1-system-pdfedit-app/src/lib/flipbook/README.md`
+- `../w1-system-pdfedit-app/src/lib/flipbook/index.ts`
+- `../w1-system-pdfedit-app/src/lib/flipbook/pdfConverter.ts`
+- `../w1-system-pdfedit-app/src/lib/flipbook/payloadFlipbookConversion.ts`
+- `../w1-system-pdfedit-app/src/lib/flipbook/cleanup.ts`
+- `../w1-system-pdfedit-app/src/lib/flipbook/cover.ts`
+- `../w1-system-pdfedit-app/src/payload/blocks/FlipbookSection.ts`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookHeader.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookHeader.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookHome.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookNavigationWidget.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookNavigationWidget.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookReader.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookReader.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookSideChrome.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookSideChrome.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookThumbnailRail.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookThumbnailRail.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookToolbar.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/FlipbookToolbar.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/W1SystemMark.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/W1SystemMark.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/dev/ColorSchemeEditor.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/dev/CurlTuningPanel.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/dev/DevTools.module.css`
+- `../w1-system-pdfedit-app/src/components/flipbook/dev/DevToolsButton.tsx`
+- `../w1-system-pdfedit-app/src/components/flipbook/dev/devCurlTuning.ts`
+- `../w1-system-pdfedit-app/src/components/flipbook/readerDevice.ts`
+- `../w1-system-pdfedit-app/src/components/page/W1FlipbookSectionRenderer.tsx`
+- `../w1-system-pdfedit-app/src/lib/blocks/flipbook/config.ts`
+- `../w1-system-pdfedit-app/src/lib/blocks/flipbook/labels.ts`
+- `../w1-system-pdfedit-app/src/lib/blocks/flipbook/locale.ts`
+- `../w1-system-pdfedit-app/src/lib/blocks/flipbook/resolveFlipbookBlockInput.ts`
+- `../w1-system-pdfedit-app/src/lib/blocks/flipbook/types.ts`
+- `../w1-system-pdfedit-app/src/lib/theme/appColorScheme.ts`
+- `../w1-system-pdfedit-app/src/lib/theme/clientLogo.ts`
+- `../w1-system-pdfedit-app/src/lib/theme/clientLogoVariants.ts`
+- `../w1-system-pdfedit-app/src/lib/theme/colorSchemeTokens.ts`
+- `../w1-system-pdfedit-app/src/app/(frontend)/flipbooks/[slug]/page.tsx`
+- `../w1-system-pdfedit-app/src/app/(frontend)/flipbooks/flipbooks.module.css`
+- `../w1-system-pdfedit-app/src/app/(frontend)/flipbooks/page.tsx`
+- `../w1-system-pdfedit-app/src/app/(frontend)/theme/palettes.css`
+- `../w1-system-pdfedit-app/src/payload/collections/ColorSchemes.ts`
 
 ---
 
@@ -192,7 +192,7 @@ _(keine)_
 - `docs/reports/review/README.md`
 - `docs/archive/README.md`
 - `docs/audit/README.md`
-- `docs/contracts/formrecorder-app-integration-contract.md`
+- `docs/contracts/pdfedit-app-integration-contract.md`
 - `docs/contracts/flipbook-app-integration-contract.md`
 - `autodeploy/multi/build_and_deploy_multi-repo.sh`
 - `autodeploy/multi/multi_repo_build.sh`
@@ -241,7 +241,7 @@ _(keine)_
 | Basis Docs Source | `local generation snapshot` |
 | Basis Docs Mode | `w1-system-local` |
 | Snapshot Datum | `2026-10-03 18:01:05 UTC` |
-| Aktive Module | `formrecorder`, `flipbook` |
+| Aktive Module | `pdfedit`, `flipbook` |
 | Validator | `ok` |
 | Snippet Warnungen | `0` |
 
@@ -249,12 +249,12 @@ _(keine)_
 
 | Modul | Paket | Snippet-Modus | Package-Integration | Version | Lokale Quelle |
 |---|---|---|---|---|---|
-| `formrecorder` | `@werk1/w1-system-formrecorder` | `cloned/file` | `file: sibling package` | `2026-10-03` | `docs/contracts/formrecorder-app-integration-contract.md` |
+| `pdfedit` | `@werk1/w1-system-pdfedit` | `cloned/file` | `file: sibling package` | `2026-10-03` | `docs/contracts/pdfedit-app-integration-contract.md` |
 | `flipbook` | `@werk1/w1-system-flipbook` | `cloned/file` | `file: sibling package` | `2026-09-29` | `docs/contracts/flipbook-app-integration-contract.md` |
 
 ### Package-Integration pro Modul
 
-- `formrecorder`: `file: sibling package`
+- `pdfedit`: `file: sibling package`
 - `flipbook`: `file: sibling package`
 
 ### Snippet-Warnungen
@@ -315,7 +315,7 @@ _(keine)_
 - `docs/reports/review/README.md`
 - `docs/archive/README.md`
 - `docs/audit/README.md`
-- `docs/contracts/formrecorder-app-integration-contract.md`
+- `docs/contracts/pdfedit-app-integration-contract.md`
 - `docs/contracts/flipbook-app-integration-contract.md`
 
 ---
@@ -337,7 +337,7 @@ Diese Dateien wurden generiert, enthalten aber Platzhalter die manuell befüllt 
 ### .env
 
 ```
-MONGODB_URI=mongodb://mongo:27017/w1-system-formrecorder-app
+MONGODB_URI=mongodb://mongo:27017/w1-system-pdfedit-app
 PAYLOAD_SECRET=<zufälliger Secret-String>
 NEXT_PUBLIC_SERVER_URL=http://localhost:3600
 ```

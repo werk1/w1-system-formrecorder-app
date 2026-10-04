@@ -2,7 +2,7 @@
 
 Generated at: 2026-10-03T18:01:05.494Z
 
-App: `w1-system-formrecorder-app`
+App: `w1-system-pdfedit-app`
 
 Rule snapshot source: `w1-system-app-creator`
 AppCreator commit: `a28aefc`
@@ -13,12 +13,12 @@ Validation Result: `ok`
 
 ## Active Modules
 
-- `formrecorder`
+- `pdfedit`
 - `flipbook`
 
 ## Module Snippets
 
-- `formrecorder`: package `@werk1/w1-system-formrecorder`, source `cloned/file`, integration `file: sibling package`, version `2026-10-03`, path `docs/contracts/formrecorder-app-integration-contract.md`
+- `pdfedit`: package `@werk1/w1-system-pdfedit`, source `cloned/file`, integration `file: sibling package`, version `2026-10-03`, path `docs/contracts/pdfedit-app-integration-contract.md`
 - `flipbook`: package `@werk1/w1-system-flipbook`, source `cloned/file`, integration `file: sibling package`, version `2026-09-29`, path `docs/contracts/flipbook-app-integration-contract.md`
 
 ## Initial Warnings

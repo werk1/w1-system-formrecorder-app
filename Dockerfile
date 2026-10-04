@@ -18,8 +18,8 @@ COPY ../w1-system-carouselblock/package.json ../w1-system-carouselblock/package-
 RUN cd /w1-system-carouselblock && npm ci --ignore-scripts
 COPY ../w1-system-font-manager/package.json ../w1-system-font-manager/package-lock.json* /w1-system-font-manager/
 RUN cd /w1-system-font-manager && npm ci --ignore-scripts
-COPY ../w1-system-formrecorder/package.json ../w1-system-formrecorder/package-lock.json* /w1-system-formrecorder/
-RUN cd /w1-system-formrecorder && npm ci --ignore-scripts
+COPY ../w1-system-pdfedit/package.json ../w1-system-pdfedit/package-lock.json* /w1-system-pdfedit/
+RUN cd /w1-system-pdfedit && npm ci --ignore-scripts
 COPY ../w1-system-flipbook/package.json ../w1-system-flipbook/package-lock.json* /w1-system-flipbook/
 RUN cd /w1-system-flipbook && npm ci --ignore-scripts
 COPY ../w1-system-ui/package.json ../w1-system-ui/package-lock.json* /w1-system-ui/
@@ -44,7 +44,7 @@ COPY --from=deps /app/../w1-system-imageblock /w1-system-imageblock/
 COPY --from=deps /app/../w1-system-media-manager /w1-system-media-manager/
 COPY --from=deps /app/../w1-system-carouselblock /w1-system-carouselblock/
 COPY --from=deps /app/../w1-system-font-manager /w1-system-font-manager/
-COPY --from=deps /app/../w1-system-formrecorder /w1-system-formrecorder/
+COPY --from=deps /app/../w1-system-pdfedit /w1-system-pdfedit/
 COPY --from=deps /app/../w1-system-flipbook /w1-system-flipbook/
 COPY --from=deps /app/../w1-system-ui /w1-system-ui/
 COPY --from=deps /app/../w1-system-widgets /w1-system-widgets/

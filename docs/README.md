@@ -1,6 +1,6 @@
 # Documentation
 
-This directory contains the local standalone documentation and rule snapshot for `w1-system-formrecorder-app`.
+This directory contains the local standalone documentation and rule snapshot for `w1-system-pdfedit-app`.
 
 ## Entry Points
 
@@ -19,7 +19,7 @@ Then read:
 - [contracts/app-host-package-boundary-contract.md](contracts/app-host-package-boundary-contract.md) — app-host/package boundary.
 - [contracts/app-font-management-contract.md](contracts/app-font-management-contract.md) — Payload App Font runtime and publication contract.
 - [contracts/documentation-lifecycle-contract.md](contracts/documentation-lifecycle-contract.md) — lifecycle and placement rules.
-- [contracts/formrecorder-app-integration-contract.md](contracts/formrecorder-app-integration-contract.md) — formrecorder module integration.
+- [contracts/pdfedit-app-integration-contract.md](contracts/pdfedit-app-integration-contract.md) — pdfedit module integration.
 - [contracts/flipbook-app-integration-contract.md](contracts/flipbook-app-integration-contract.md) — flipbook module integration.
 
 ## Folder Map

@@ -6,7 +6,7 @@ import { flipbookLocaleQuery } from '@/lib/blocks/flipbook/locale'
 import { pickLogoVariants, type ClientLogo } from '@/lib/theme/clientLogoVariants'
 import styles from './FlipbookHeader.module.css'
 
-const MENU_LABEL = 'Formrecorder'
+const MENU_LABEL = 'Pdfedit'
 
 export function FlipbookHeader({
   items,

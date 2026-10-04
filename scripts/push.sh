@@ -108,9 +108,9 @@ check_default "DEPLOY_SSH_PRIVATE_KEY" "$DEPLOY_SSH_PRIVATE_KEY" "~/.ssh/DEIN_BU
 check_default "BUILD_SSH_PASSWORD"    "$BUILD_SSH_PASSWORD"    "DEIN_BUILD_PASSWORT"
 
 BUILD_SSH_PORT="${BUILD_SSH_PORT:-22}"
-BUILD_SSH_DIR="${BUILD_SSH_DIR:-w1-system-formrecorder-app}"
+BUILD_SSH_DIR="${BUILD_SSH_DIR:-w1-system-pdfedit-app}"
 DEPLOY_SSH_PORT="${DEPLOY_SSH_PORT:-22}"
-DEPLOY_SSH_DIR="${DEPLOY_SSH_DIR:-w1-system-formrecorder-app}"
+DEPLOY_SSH_DIR="${DEPLOY_SSH_DIR:-w1-system-pdfedit-app}"
 
 if [ "$ERRORS" -gt 0 ]; then
   echo "" >&2

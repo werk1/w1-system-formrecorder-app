@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import { recordsToCsv } from '@werk1/w1-system-formrecorder'
-import type { W1FormRecord } from '@werk1/w1-system-formrecorder/types'
+import { recordsToCsv } from '@werk1/w1-system-pdfedit'
+import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 
 export const runtime = 'nodejs'
 
 /**
- * Ordered record export of a formrecorder document. Admin-only.
+ * Ordered record export of a pdfedit document. Admin-only.
  *
- * GET ?id=<formrecorderId>&format=csv|json&delimiter=;|,&bom=0
+ * GET ?id=<pdfeditId>&format=csv|json&delimiter=;|,&bom=0
  * csv (default): RFC 4180 via `recordsToCsv` from the package — same
  * serializer the editor preview uses. json: records in export order.
  */
@@ -37,32 +37,32 @@ export async function GET(request: NextRequest) {
   }
 
   const doc = (await payload
-    .findByID({ collection: 'formrecorders' as never, id, depth: 0, overrideAccess: true })
+    .findByID({ collection: 'pdfedits' as never, id, depth: 0, overrideAccess: true })
     .catch(() => null)) as { id: string | number; slug?: unknown; title?: unknown; schema?: Array<Record<string, unknown>> | null } | null
   if (!doc) {
-    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Formrecorder not found.' } }, { status: 404 })
+    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Pdfedit not found.' } }, { status: 404 })
   }
 
   const { docs } = await payload.find({
-    collection: 'formrecords' as never,
-    where: { formrecorder: { equals: doc.id } } as never,
+    collection: 'pdfeditrecords' as never,
+    where: { pdfedit: { equals: doc.id } } as never,
     sort: 'order',
     depth: 0,
     pagination: false,
     overrideAccess: true,
   })
   const records = (docs as unknown as Array<Record<string, unknown>>).map(
-    (r): W1FormRecord => ({
+    (r): W1PdfEditRecord => ({
       id: String(r.id),
       order: typeof r.order === 'number' ? r.order : 0,
       ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
       pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
-      blocks: Array.isArray(r.blocks) ? (r.blocks as W1FormRecord['blocks']) : [],
+      blocks: Array.isArray(r.blocks) ? (r.blocks as W1PdfEditRecord['blocks']) : [],
     }),
   )
 
   const format = request.nextUrl.searchParams.get('format') ?? 'csv'
-  const base = typeof doc.slug === 'string' && doc.slug ? doc.slug : `formrecorder-${doc.id}`
+  const base = typeof doc.slug === 'string' && doc.slug ? doc.slug : `pdfedit-${doc.id}`
 
   if (format === 'json') {
     return new NextResponse(JSON.stringify(records, null, 2), {

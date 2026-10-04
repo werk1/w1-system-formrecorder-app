@@ -4,13 +4,13 @@ const adminOnly: Access = ({ req: { user } }) =>
   Boolean((user as { roles?: string[] } | null)?.roles?.includes("admin"));
 
 /**
- * Captured records of a formrecorder document: one doc per entry (e.g. a
+ * Captured records of a pdfedit document: one doc per entry (e.g. a
  * hotel listing). `blocks` is the ordered list of assigned text blocks
  * `{ blockId, name?, text, edited? }` defined by
- * `@werk1/w1-system-formrecorder`. `order` is the explicit export order.
+ * `@werk1/w1-system-pdfedit`. `order` is the explicit export order.
  */
-export const Formrecords: CollectionConfig = {
-  slug: "formrecords",
+export const Pdfeditrecords: CollectionConfig = {
+  slug: "pdfeditrecords",
   labels: {
     singular: { de: "Datensatz", en: "Record" },
     plural: { de: "Datensätze", en: "Records" },
@@ -27,9 +27,9 @@ export const Formrecords: CollectionConfig = {
   },
   fields: [
     {
-      name: "formrecorder",
+      name: "pdfedit",
       type: "relationship",
-      relationTo: "formrecorders",
+      relationTo: "pdfedits",
       required: true,
       index: true,
     },

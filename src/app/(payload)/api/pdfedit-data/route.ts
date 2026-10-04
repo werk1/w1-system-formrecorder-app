@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import type { W1FormRecord } from '@werk1/w1-system-formrecorder/types'
+import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { relationId } from '@/lib/flipbook'
 
 export const runtime = 'nodejs'
 
 /**
- * Assembles the prepared `W1FormRecorderInput` for a formrecorder document:
+ * Assembles the prepared `W1PdfEditInput` for a pdfedit document:
  * page images + text model from the flipbook's published revision and the
  * ordered records. Admin-only (editor tool).
  */
@@ -36,13 +36,13 @@ type FlipbookDoc = {
   textModel?: unknown
   pages?: PageRow[] | null
 }
-type FormrecorderDoc = {
+type PdfeditDoc = {
   id: string | number
   title?: unknown
   slug?: unknown
   flipbook?: unknown
 }
-type FormrecordDoc = {
+type PdfeditrecordDoc = {
   id: string | number
   order?: unknown
   name?: unknown
@@ -77,10 +77,10 @@ export async function GET(request: NextRequest) {
   }
 
   const doc = (await payload
-    .findByID({ collection: 'formrecorders' as never, id, depth: 0, overrideAccess: true })
-    .catch(() => null)) as FormrecorderDoc | null
+    .findByID({ collection: 'pdfedits' as never, id, depth: 0, overrideAccess: true })
+    .catch(() => null)) as PdfeditDoc | null
   if (!doc) {
-    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Formrecorder not found.' } }, { status: 404 })
+    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Pdfedit not found.' } }, { status: 404 })
   }
 
   const flipbookId = relationId(doc.flipbook)
@@ -119,19 +119,19 @@ export async function GET(request: NextRequest) {
     .filter((p): p is NonNullable<typeof p> => p !== null)
 
   const { docs: recordDocs } = await payload.find({
-    collection: 'formrecords' as never,
-    where: { formrecorder: { equals: doc.id } } as never,
+    collection: 'pdfeditrecords' as never,
+    where: { pdfedit: { equals: doc.id } } as never,
     sort: 'order',
     depth: 0,
     pagination: false,
     overrideAccess: true,
   })
-  const records = (recordDocs as unknown as FormrecordDoc[]).map((r) => ({
+  const records = (recordDocs as unknown as PdfeditrecordDoc[]).map((r) => ({
     id: String(r.id),
     order: typeof r.order === 'number' ? r.order : 0,
     ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
     pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
-    blocks: Array.isArray(r.blocks) ? (r.blocks as W1FormRecord['blocks']) : [],
+    blocks: Array.isArray(r.blocks) ? (r.blocks as W1PdfEditRecord['blocks']) : [],
   }))
 
   const pdfMedia = media.get(String(relationId(flipbook.publishedSourcePdf)))

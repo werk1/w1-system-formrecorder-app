@@ -2,7 +2,7 @@
 
 set -eu
 
-cd /workspace/w1-system-formrecorder-app
+cd /workspace/w1-system-pdfedit-app
 
 TARGET_NPM_VERSION="11.2.0"
 DEPENDENCY_HASH_FILE="node_modules/.dependency-install.hash"

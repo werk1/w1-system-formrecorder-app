@@ -6,11 +6,11 @@ import type { Payload } from 'payload'
 export const runtime = 'nodejs'
 
 /**
- * Record persistence for the formrecorder editor. Admin-only.
+ * Record persistence for the pdfedit editor. Admin-only.
  *
- * POST   { formrecorderId, record: { id?, order?, pageIndex?, name?, blocks? } }
+ * POST   { pdfeditId, record: { id?, order?, pageIndex?, name?, blocks? } }
  *        → upsert one record; returns the stored record.
- * PATCH  { formrecorderId, ids: string[] } → sets `order` to the list index.
+ * PATCH  { pdfeditId, ids: string[] } → sets `order` to the list index.
  * DELETE { recordId } → removes a record.
  */
 
@@ -50,7 +50,7 @@ function sanitizeBlocks(raw: unknown): BlockEntry[] {
 }
 
 type RecordBody = {
-  formrecorderId?: string | number
+  pdfeditId?: string | number
   record?: { id?: string | number; order?: number; name?: string; pageIndex?: number; blocks?: unknown }
   ids?: Array<string | number>
   recordId?: string | number
@@ -61,17 +61,17 @@ export async function POST(request: NextRequest) {
   if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const body = (await request.json().catch(() => null)) as RecordBody | null
-  const formrecorderId = body?.formrecorderId
+  const pdfeditId = body?.pdfeditId
   const record = body?.record
-  if (formrecorderId === undefined || !record) {
+  if (pdfeditId === undefined || !record) {
     return NextResponse.json(
-      { error: { code: 'INVALID_REQUEST', message: 'formrecorderId and record are required.' } },
+      { error: { code: 'INVALID_REQUEST', message: 'pdfeditId and record are required.' } },
       { status: 400 },
     )
   }
 
   const data = {
-    formrecorder: formrecorderId,
+    pdfedit: pdfeditId,
     order: typeof record.order === 'number' ? record.order : 0,
     name: typeof record.name === 'string' ? record.name.trim() : '',
     pageIndex: typeof record.pageIndex === 'number' ? record.pageIndex : undefined,
@@ -81,13 +81,13 @@ export async function POST(request: NextRequest) {
   try {
     const stored = record.id
       ? await payload.update({
-          collection: 'formrecords' as never,
+          collection: 'pdfeditrecords' as never,
           id: record.id,
           data: data as never,
           overrideAccess: true,
         })
       : await payload.create({
-          collection: 'formrecords' as never,
+          collection: 'pdfeditrecords' as never,
           data: data as never,
           overrideAccess: true,
         })
@@ -106,16 +106,16 @@ export async function PATCH(request: NextRequest) {
   if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const body = (await request.json().catch(() => null)) as RecordBody | null
-  if (body?.formrecorderId === undefined || !Array.isArray(body.ids)) {
+  if (body?.pdfeditId === undefined || !Array.isArray(body.ids)) {
     return NextResponse.json(
-      { error: { code: 'INVALID_REQUEST', message: 'formrecorderId and ids are required.' } },
+      { error: { code: 'INVALID_REQUEST', message: 'pdfeditId and ids are required.' } },
       { status: 400 },
     )
   }
 
   for (const [index, id] of body.ids.entries()) {
     await payload.update({
-      collection: 'formrecords' as never,
+      collection: 'pdfeditrecords' as never,
       id,
       data: { order: index } as never,
       overrideAccess: true,
@@ -132,6 +132,6 @@ export async function DELETE(request: NextRequest) {
   if (body?.recordId === undefined || body.recordId === null) {
     return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'recordId is required.' } }, { status: 400 })
   }
-  await payload.delete({ collection: 'formrecords' as never, id: body.recordId, overrideAccess: true })
+  await payload.delete({ collection: 'pdfeditrecords' as never, id: body.recordId, overrideAccess: true })
   return NextResponse.json({ ok: true })
 }

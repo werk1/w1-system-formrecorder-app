@@ -1,7 +1,7 @@
 # App Font Management Contract
 
 Status: active
-App: `w1-system-formrecorder-app`
+App: `w1-system-pdfedit-app`
 
 ## Ownership
 

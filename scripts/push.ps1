@@ -77,11 +77,11 @@ if ($errors.Count -gt 0) {
 }
 
 $BUILD_SSH_PORT  = if ($env:BUILD_SSH_PORT)  { $env:BUILD_SSH_PORT  } else { "22" }
-$BUILD_SSH_DIR   = if ($env:BUILD_SSH_DIR)   { $env:BUILD_SSH_DIR   } else { "w1-system-formrecorder-app" }
+$BUILD_SSH_DIR   = if ($env:BUILD_SSH_DIR)   { $env:BUILD_SSH_DIR   } else { "w1-system-pdfedit-app" }
 $BUILD_SSH_HOST  = $env:BUILD_SSH_HOST
 $BUILD_SSH_USER  = $env:BUILD_SSH_USER
 $DEPLOY_SSH_PORT = if ($env:DEPLOY_SSH_PORT) { $env:DEPLOY_SSH_PORT } else { "22" }
-$DEPLOY_SSH_DIR  = if ($env:DEPLOY_SSH_DIR)  { $env:DEPLOY_SSH_DIR  } else { "w1-system-formrecorder-app" }
+$DEPLOY_SSH_DIR  = if ($env:DEPLOY_SSH_DIR)  { $env:DEPLOY_SSH_DIR  } else { "w1-system-pdfedit-app" }
 $DEPLOY_SSH_HOST = $env:DEPLOY_SSH_HOST
 $DEPLOY_SSH_USER = $env:DEPLOY_SSH_USER
 

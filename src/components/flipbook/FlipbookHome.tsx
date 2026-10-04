@@ -7,8 +7,8 @@ import { getPayloadClient } from '@/lib/payload/getPayloadClient'
 import { getClientLogo } from '@/lib/theme/clientLogo'
 
 const COPY: Record<string, { title: string; empty: string }> = {
-  de: { title: 'Formrecorder', empty: 'Noch keine PDF-Dokumente veröffentlicht.' },
-  en: { title: 'Formrecorder', empty: 'No PDF documents published yet.' },
+  de: { title: 'Pdfedit', empty: 'Noch keine PDF-Dokumente veröffentlicht.' },
+  en: { title: 'Pdfedit', empty: 'No PDF documents published yet.' },
 }
 
 /**

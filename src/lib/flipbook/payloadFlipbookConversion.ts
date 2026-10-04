@@ -10,7 +10,7 @@ import {
   scheduleSupersededCleanup,
   sweepGeneratedMedia,
 } from './cleanup'
-import { parseBboxLayout } from '@werk1/w1-system-formrecorder/extract'
+import { parseBboxLayout } from '@werk1/w1-system-pdfedit/extract'
 import {
   clearTempRoot,
   createJobDir,
@@ -314,7 +314,7 @@ export async function runFlipbookConversion(
       return 'superseded'
     }
 
-    // Text artifact of the published revision (formrecorder/searchable PDF):
+    // Text artifact of the published revision (pdfedit/searchable PDF):
     // one bbox-layout extraction for the whole document. A failure must not
     // break the flipbook conversion — the pages are published without a
     // text model and the next conversion can fill it in.

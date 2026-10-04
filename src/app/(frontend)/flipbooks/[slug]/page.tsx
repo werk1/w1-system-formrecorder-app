@@ -31,7 +31,7 @@ export async function generateMetadata({ params, searchParams }: FlipbookReaderP
   const { slug } = await params
   const locale = resolveFlipbookLocale((await searchParams).locale)
   const { doc, input } = await loadFlipbook(slug, locale).catch(() => ({ doc: null, input: null }))
-  if (!input) return { title: 'Formrecorder' }
+  if (!input) return { title: 'Pdfedit' }
 
   const cover = coverUrlOf(doc) ?? input.pages[0]?.imageUrl
   return {

@@ -18,8 +18,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'w1-system-formrecorder-app',
-  description: 'w1-system-formrecorder-app',
+  title: 'w1-system-pdfedit-app',
+  description: 'w1-system-pdfedit-app',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

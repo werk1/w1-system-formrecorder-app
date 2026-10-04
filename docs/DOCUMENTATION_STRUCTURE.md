@@ -1,6 +1,6 @@
 # Documentation Structure
 
-This document defines where `w1-system-formrecorder-app` documentation belongs.
+This document defines where `w1-system-pdfedit-app` documentation belongs.
 
 ## App-Local First
 

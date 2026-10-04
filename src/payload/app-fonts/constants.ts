@@ -1,6 +1,6 @@
 export const APP_FONT_PUBLISH_CONTEXT_KEY = 'w1AppFontPublisher'
 export const APP_FONT_DERIVATIVE_CONTEXT_KEY = 'w1AppFontDerivativePipeline'
 export const APP_FONT_IMPORT_CONTEXT_KEY = 'w1AppFontTrustedImport'
-export const APP_FONT_PROJECT_ID = 'w1-system-formrecorder-app'
+export const APP_FONT_PROJECT_ID = 'w1-system-pdfedit-app'
 export const APP_FONT_ENGINE_VERSION = '2.0.0'
 export const APP_FONT_STORAGE_DIRECTORY = 'app-font-assets'

@@ -5,10 +5,10 @@ import type { CSSProperties } from 'react'
 import { useDocumentInfo } from '@payloadcms/ui'
 
 /**
- * Link to the overlay editor view (`/admin/formrecorder?doc=<id>`) plus the
- * export endpoints, shown on the formrecorder edit screen.
+ * Link to the overlay editor view (`/admin/pdfedit?doc=<id>`) plus the
+ * export endpoints, shown on the pdfedit edit screen.
  */
-export function FormrecorderEditorLink() {
+export function PdfeditEditorLink() {
   const { id } = useDocumentInfo()
   const [origin, setOrigin] = useState(process.env.NEXT_PUBLIC_SERVER_URL ?? '')
 
@@ -17,18 +17,18 @@ export function FormrecorderEditorLink() {
   }, [])
 
   if (!id) {
-    return <div style={styles.container}>Speichern Sie den Formrecorder, um den Editor zu öffnen.</div>
+    return <div style={styles.container}>Speichern Sie den Pdfedit, um den Editor zu öffnen.</div>
   }
 
   return (
     <div style={styles.container}>
-      <a style={styles.link} href={`${origin}/admin/formrecorder?doc=${id}`}>
+      <a style={styles.link} href={`${origin}/admin/pdfedit?doc=${id}`}>
         Editor öffnen
       </a>
-      <a style={styles.link} href={`${origin}/api/formrecorder-export?id=${id}&format=csv`}>
+      <a style={styles.link} href={`${origin}/api/pdfedit-export?id=${id}&format=csv`}>
         CSV exportieren
       </a>
-      <a style={styles.link} href={`${origin}/api/formrecorder-export?id=${id}&format=json`}>
+      <a style={styles.link} href={`${origin}/api/pdfedit-export?id=${id}&format=json`}>
         JSON exportieren
       </a>
     </div>

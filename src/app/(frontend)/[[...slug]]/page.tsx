@@ -26,8 +26,8 @@ function resolveLocale(rawLocale: string | undefined): FrontendLocale {
 
 export async function generateMetadata(props: FrontendPageProps): Promise<Metadata> {
   const fallbackMetadata: Metadata = {
-    title: 'w1-system-formrecorder-app',
-    description: 'w1-system-formrecorder-app',
+    title: 'w1-system-pdfedit-app',
+    description: 'w1-system-pdfedit-app',
   }
 
   try {
@@ -35,13 +35,13 @@ export async function generateMetadata(props: FrontendPageProps): Promise<Metada
     const searchParams = await props.searchParams
     const locale = resolveLocale(searchParams.locale)
     const route = segmentsToRoute(slug)
-    if (route === '/') return { title: 'Formrecorder' }
+    if (route === '/') return { title: 'Pdfedit' }
     const page = await resolveFrontendPageByRoute({ route, locale })
 
     if (!page) return fallbackMetadata
 
-    const fallbackTitle = page.title || 'w1-system-formrecorder-app'
-    const fallbackDescription = 'w1-system-formrecorder-app'
+    const fallbackTitle = page.title || 'w1-system-pdfedit-app'
+    const fallbackDescription = 'w1-system-pdfedit-app'
 
     return {
       title: page.seo?.metaTitle || fallbackTitle,

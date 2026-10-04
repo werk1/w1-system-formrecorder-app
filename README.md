@@ -1,6 +1,6 @@
-# w1-system-formrecorder-app
+# w1-system-pdfedit-app
 
-PDF formrecorder
+PDF pdfedit
 
 **Workspace-Modus** – alle `@werk1/…`-Pakete liegen als Geschwister-Verzeichnisse (`../w1-system-*`) und werden als `file:`-Deps eingebunden.
 
@@ -31,12 +31,12 @@ Workspace-Verzeichnis anlegen, App hineinclonen und fehlende `@werk1`-Pakete aut
 
 ```bash
 # 1. Workspace-Root anlegen und App clonen
-mkdir workspace-w1-system-formrecorder-app
-cd workspace-w1-system-formrecorder-app
-git clone <REPO_URL> w1-system-formrecorder-app
+mkdir workspace-w1-system-pdfedit-app
+cd workspace-w1-system-pdfedit-app
+git clone <REPO_URL> w1-system-pdfedit-app
 
 # 2. In den App-Ordner wechseln
-cd w1-system-formrecorder-app
+cd w1-system-pdfedit-app
 
 # 3. update-Script ausfuehren:
 #    - klont alle fehlenden @werk1-Pakete aus GitHub ins Workspace-Root
@@ -271,7 +271,7 @@ Bei **jedem Push** werden die Dateien unter `autodeploy/multi/` auf den Build-Se
 ## Verzeichnisse
 
 ```text
-w1-system-formrecorder-app/
+w1-system-pdfedit-app/
 ├── src/                      Quellcode (Next.js App Router + Payload)
 ├── scripts/                  Push- / Update- / Upload- / Dev-Scripts
 │   ├── upload-data.mjs       media + assets + MongoDB auf Deploy-Server laden

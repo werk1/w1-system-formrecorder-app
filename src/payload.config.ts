@@ -9,7 +9,7 @@ import path from 'path'
 import { buildConfig, type CollectionConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
-import { Users, Media, TextContent, Pages, Carousels, Flipbooks, ColorSchemes, Formrecorders, Formrecords } from './payload/collections'
+import { Users, Media, TextContent, Pages, Carousels, Flipbooks, ColorSchemes, Pdfedits, Pdfeditrecords } from './payload/collections'
 import { SiteSettings } from './payload/globals'
 import { TextWrapFeature } from '@/payload/lexical/text-wrap/feature.server'
 import { resetInterruptedFlipbookJobs } from '@/lib/flipbook'
@@ -25,7 +25,7 @@ export const DEFAULT_LOCALE = 'de' as const
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const DEFAULT_HOME_IDENTIFIER = 'w1-system-formrecorder-app-home'
+const DEFAULT_HOME_IDENTIFIER = 'w1-system-pdfedit-app-home'
 
 function createLexicalParagraph(text: string): any {
   return {
@@ -99,7 +99,7 @@ async function ensureDefaultHomepage(payload: Parameters<NonNullable<Parameters<
         identifier: DEFAULT_HOME_IDENTIFIER,
         richTextArrayWithStyle: [
           {
-            content: createLexicalParagraph('Hier entsteht w1-system-formrecorder-app ...'),
+            content: createLexicalParagraph('Hier entsteht w1-system-pdfedit-app ...'),
             style: 'hero1',
           },
         ],
@@ -112,7 +112,7 @@ async function ensureDefaultHomepage(payload: Parameters<NonNullable<Parameters<
     collection: 'pages',
     data: {
       route: '/',
-      title: 'w1-system-formrecorder-app',
+      title: 'w1-system-pdfedit-app',
       sections: [
         {
           blockType: 'w1-content-section',
@@ -209,19 +209,19 @@ export default buildConfig({
         Icon: './payload/components/W1Logo#W1Icon',
       },
       views: {
-        formrecorder: {
-          Component: './payload/components/FormrecorderEditor#FormrecorderEditor',
-          path: '/formrecorder' as `/${string}`,
+        pdfedit: {
+          Component: './payload/components/PdfeditEditor#PdfeditEditor',
+          path: '/pdfedit' as `/${string}`,
         },
       },
     },
     meta: {
-      titleSuffix: ' - w1-system-formrecorder-app',
-      description: 'w1-system-formrecorder-app',
+      titleSuffix: ' - w1-system-pdfedit-app',
+      description: 'w1-system-pdfedit-app',
     },
   },
 
-  collections: [Users, Media, TextContent, Pages, Carousels, Flipbooks, ColorSchemes, Formrecorders, Formrecords, AppFontAssets, AppFontFamilies, AppFontSnapshots],
+  collections: [Users, Media, TextContent, Pages, Carousels, Flipbooks, ColorSchemes, Pdfedits, Pdfeditrecords, AppFontAssets, AppFontFamilies, AppFontSnapshots],
   globals: [SiteSettings, AppFontSettings],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [

@@ -102,7 +102,7 @@ const nextConfig = {
     '@werk1/w1-system-carouselblock',
     '@werk1/w1-system-device-info',
     '@werk1/w1-system-flipbook',
-    '@werk1/w1-system-formrecorder',
+    '@werk1/w1-system-pdfedit',
     '@werk1/w1-system-gsap-gesture',
     '@werk1/w1-system-gsap-scroll',
     '@werk1/w1-system-imageblock',

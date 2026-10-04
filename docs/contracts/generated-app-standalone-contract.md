@@ -1,7 +1,7 @@
 # Generated App Standalone Contract
 
 Status: active
-App: `w1-system-formrecorder-app`
+App: `w1-system-pdfedit-app`
 Generated: 2026-10-03T17:59:51.287Z
 
 ## Rule

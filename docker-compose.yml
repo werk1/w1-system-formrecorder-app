@@ -6,7 +6,7 @@ services:
     volumes:
       - ./mongo-data:/data/db
     networks:
-      - w1-system-formrecorder-app-network
+      - w1-system-pdfedit-app-network
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }).ok }\""]
       interval: 5s
@@ -15,8 +15,8 @@ services:
       start_period: 10s
 
   app:
-    image: reg.werk1.at/w1-system-formrecorder-app:latest
-    container_name: w1-system-formrecorder-app
+    image: reg.werk1.at/w1-system-pdfedit-app:latest
+    container_name: w1-system-pdfedit-app
     restart: unless-stopped
     env_file:
       - .env
@@ -24,7 +24,7 @@ services:
       - "${APP_PORT:-3600}:3000"
     environment:
       NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/w1-system-formrecorder-app?replicaSet=rs0&directConnection=true}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/w1-system-pdfedit-app?replicaSet=rs0&directConnection=true}
 
       PAYLOAD_SECRET: ${PAYLOAD_SECRET}
       APP_FONTS_GOOGLE_API_KEY: ${APP_FONTS_GOOGLE_API_KEY:-}
@@ -39,7 +39,7 @@ services:
       - ./app-font-assets:/app/app-font-assets
       - ./data:/app/data
     networks:
-      - w1-system-formrecorder-app-network
+      - w1-system-pdfedit-app-network
     deploy:
       resources:
         limits:
@@ -49,5 +49,5 @@ services:
 
 
 networks:
-  w1-system-formrecorder-app-network:
+  w1-system-pdfedit-app-network:
     driver: bridge

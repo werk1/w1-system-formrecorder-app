@@ -48,11 +48,11 @@ for (const line of readFileSync(ENV_FILE, 'utf8').split(/\r?\n/)) {
 const BUILD_SSH_HOST  = process.env.BUILD_SSH_HOST
 const BUILD_SSH_USER  = process.env.BUILD_SSH_USER
 const BUILD_SSH_PORT  = process.env.BUILD_SSH_PORT  || '22'
-const BUILD_SSH_DIR   = process.env.BUILD_SSH_DIR   || 'w1-system-formrecorder-app'
+const BUILD_SSH_DIR   = process.env.BUILD_SSH_DIR   || 'w1-system-pdfedit-app'
 const DEPLOY_SSH_HOST = process.env.DEPLOY_SSH_HOST
 const DEPLOY_SSH_USER = process.env.DEPLOY_SSH_USER
 const DEPLOY_SSH_PORT = process.env.DEPLOY_SSH_PORT || '22'
-const DEPLOY_SSH_DIR  = process.env.DEPLOY_SSH_DIR  || 'w1-system-formrecorder-app'
+const DEPLOY_SSH_DIR  = process.env.DEPLOY_SSH_DIR  || 'w1-system-pdfedit-app'
 const DOCKER_PASSWORD = process.env.DOCKER_PASSWORD || ''
 const NPM_TOKEN       = process.env.NPM_TOKEN       || ''
 

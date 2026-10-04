@@ -250,7 +250,7 @@ export const Flipbooks: CollectionConfig = {
         readOnly: true,
         hidden: true,
         description:
-          "Extrahierte Textebene (W1FormTextModel) der veröffentlichten Revision – Grundlage für Formrecorder-Overlay und Suche.",
+          "Extrahierte Textebene (W1FormTextModel) der veröffentlichten Revision – Grundlage für Pdfedit-Overlay und Suche.",
       },
     },
     {
