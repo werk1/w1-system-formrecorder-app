@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { W1PdfEditBlock, googleFontsCssUrl } from '@werk1/w1-system-pdfedit'
+import { W1PdfEditBlock, googleFontsCssUrl, mergeTextBlocks, splitTextBlock, suggestMerges } from '@werk1/w1-system-pdfedit'
 import type {
   W1PdfEditRecord,
   W1PdfEditRecordBlock,
@@ -51,6 +51,10 @@ const LABELS: W1PdfEditLabels = {
   charOverflow: (max) => `Mehr als ${max} Zeichen: der Rest wird beim Aktualisieren des PDFs abgeschnitten`,
   applyPdf: 'PDF aktualisieren',
   applyPdfBusy: 'PDF wird aktualisiert …',
+  mergeBlocks: (count) => `Blöcke verbinden (${count})`,
+  splitBlock: 'Verbundenen Block trennen',
+  autoMerge: 'Absätze automatisch verbinden',
+  autoMergeNone: 'Keine getrennten Absätze gefunden',
   restorePage: 'Seite auf Original zurücksetzen',
   restoreConfirm: (page) => `Seite ${page} auf das Original zurücksetzen? Alle bearbeiteten Texte dieser Seite gehen verloren (im PDF und in den Datensätzen). Das macht keinen einzelnen Schritt rückgängig.`,
   previewOriginal: 'Vorschau: Original',
@@ -162,6 +166,32 @@ export function PdfeditEditor() {
       return { ...current, records: [...rest, record] }
     })
   }, [])
+
+  /** Merges/splits text blocks on the server, then mirrors the change locally. */
+  const editBlocks = useCallback(
+    async (body: { op: 'merge'; blockIds: string[] } | { op: 'split'; blockId: string } | { op: 'auto'; pageIndex: number }) => {
+      if (!docId) return
+      try {
+        await postJson('/api/pdfedit-textmodel', 'POST', { pdfeditId: docId, ...body })
+        setInput((current) => {
+          if (!current) return current
+          let model = current.textModel
+          if (body.op === 'merge') model = mergeTextBlocks(model, body.blockIds)
+          else if (body.op === 'split') model = splitTextBlock(model, body.blockId)
+          else {
+            const owned = new Set(current.records.flatMap((r) => r.blocks.map((b) => b.blockId)))
+            for (const group of suggestMerges(model, body.pageIndex)) {
+              if (!group.some((id) => owned.has(id))) model = mergeTextBlocks(model, group)
+            }
+          }
+          return { ...current, textModel: model }
+        })
+      } catch (e) {
+        setStatus(`Fehler: ${(e as Error).message}`)
+      }
+    },
+    [docId],
+  )
 
   const persistRecord = useCallback(
     async (record: W1PdfEditRecord) => {
@@ -296,6 +326,9 @@ export function PdfeditEditor() {
         onRecordDelete={onRecordDelete}
         onRecordReorder={onRecordReorder}
         onRecordSave={onRecordSave}
+        onMergeBlocks={(blockIds) => void editBlocks({ op: 'merge', blockIds })}
+        onSplitBlock={(blockId) => void editBlocks({ op: 'split', blockId })}
+        onAutoMerge={(pageIndex) => void editBlocks({ op: 'auto', pageIndex })}
         onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
         onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
         pdfBusy={pdfBusy}
