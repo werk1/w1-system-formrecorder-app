@@ -244,8 +244,49 @@ export const Flipbooks: CollectionConfig = {
     { name: "publishedRevision", type: "text", admin: { readOnly: true, position: "sidebar" } },
     { name: "pageCount", type: "number", admin: { readOnly: true, position: "sidebar" } },
     {
+      // Published replacements of single pages (e.g. written by the pdfedit
+      // module's "PDF aktualisieren"). The reader shows them instead of the
+      // converted pages while `overrideRevision` equals `publishedRevision`.
+      name: "pageOverrides",
+      label: { de: "Aktualisierte Seiten", en: "Updated pages" },
+      type: "array",
+      admin: {
+        readOnly: true,
+        position: "sidebar",
+        description: "Vom Reader statt der konvertierten Seite gezeigt (z. B. nach „PDF aktualisieren“).",
+      },
+      fields: [
+        { name: "pageIndex", type: "number", required: true, min: 0 },
+        { name: "image", type: "upload", relationTo: "media", required: true },
+        { name: "width", type: "number" },
+        { name: "height", type: "number" },
+      ],
+    },
+    {
+      name: "pdfOverride",
+      label: { de: "Aktualisiertes PDF", en: "Updated PDF" },
+      type: "upload",
+      relationTo: "media",
+      admin: { readOnly: true, position: "sidebar", description: "PDF-Link des Readers, solange die aktualisierten Seiten gelten." },
+    },
+    {
+      name: "overrideRevision",
+      type: "text",
+      admin: { readOnly: true, position: "sidebar", description: "Revision, auf der die aktualisierten Seiten beruhen; bei Abweichung werden sie ignoriert." },
+    },
+    { name: "overrideSource", type: "text", admin: { readOnly: true, position: "sidebar", description: "Quelle der aktualisierten Seiten (Pdfedit-ID)." } },
+    {
       name: "textModel",
       type: "json",
+      // The text model (blocks, lines, words, styles) easily exceeds 1 MB. The
+      // admin form would send it back on every save and the request body gets
+      // cut off, so the field is never read or written through the admin/REST
+      // API. Server code (conversion, pdfedit endpoints) uses `overrideAccess`.
+      access: {
+        read: () => false,
+        update: () => false,
+        create: () => false,
+      },
       admin: {
         readOnly: true,
         hidden: true,

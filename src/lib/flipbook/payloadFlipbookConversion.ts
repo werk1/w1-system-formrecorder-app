@@ -10,10 +10,11 @@ import {
   scheduleSupersededCleanup,
   sweepGeneratedMedia,
 } from './cleanup'
-import { parseBboxLayout } from '@werk1/w1-system-pdfedit/extract'
+import { applyTextStyles, parseBboxLayout } from '@werk1/w1-system-pdfedit/extract'
 import {
   clearTempRoot,
   createJobDir,
+  extractStyleLayout,
   extractTextLayout,
   FLIPBOOK_PAGE_TIMEOUT_MS,
   FlipbookConversionError,
@@ -72,6 +73,8 @@ export type FlipbookConverter = {
   probePdf: typeof probePdf
   renderPage: typeof renderPage
   extractTextLayout: typeof extractTextLayout
+  /** Optional: adds font/size/colour to the text blocks. A failure keeps the unstyled model. */
+  extractStyleLayout?: typeof extractStyleLayout
 }
 
 export const defaultFlipbookConverter: FlipbookConverter = {
@@ -83,6 +86,7 @@ export const defaultFlipbookConverter: FlipbookConverter = {
   probePdf,
   renderPage,
   extractTextLayout,
+  extractStyleLayout,
 }
 
 export type FlipbookConversionOutcome =
@@ -324,6 +328,13 @@ export async function runFlipbookConversion(
       textModel = parseBboxLayout(textXml, { revision })
     } catch (error) {
       payload.logger.warn(`flipbook: text extraction for ${flipbookId} failed: ${String(error)}`)
+    }
+    if (textModel && converter.extractStyleLayout) {
+      try {
+        textModel = applyTextStyles(textModel as ReturnType<typeof parseBboxLayout>, await converter.extractStyleLayout(filePath))
+      } catch (error) {
+        payload.logger.warn(`flipbook: style extraction for ${flipbookId} failed: ${String(error)}`)
+      }
     }
 
     const previousRevision = typeof current.publishedRevision === 'string' ? current.publishedRevision : null

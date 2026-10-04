@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { W1PdfEditBlock } from '@werk1/w1-system-pdfedit'
+import { W1PdfEditBlock, googleFontsCssUrl } from '@werk1/w1-system-pdfedit'
 import type {
   W1PdfEditRecord,
   W1PdfEditRecordBlock,
@@ -48,10 +48,19 @@ const LABELS: W1PdfEditLabels = {
   showTexts: 'Texte einblenden',
   hideTexts: 'Texte ausblenden',
   charLimit: (max) => `Max. ${max} Zeichen`,
+  charOverflow: (max) => `Mehr als ${max} Zeichen: der Rest wird beim Aktualisieren des PDFs abgeschnitten`,
+  applyPdf: 'PDF aktualisieren',
+  applyPdfBusy: 'PDF wird aktualisiert …',
+  restorePage: 'Seite auf Original zurücksetzen',
+  restoreConfirm: (page) => `Seite ${page} auf das Original zurücksetzen? Alle bearbeiteten Texte dieser Seite gehen verloren (im PDF und in den Datensätzen). Das macht keinen einzelnen Schritt rückgängig.`,
+  previewOriginal: 'Vorschau: Original',
+  previewEdited: 'Vorschau: Bearbeitet',
+  downloadEdited: 'Bearbeitetes PDF',
   dragBlock: 'Ziehen: Reihenfolge ändern oder in einen anderen Datensatz verschieben',
   noBlocks: 'Noch keine Blöcke: Blöcke auf der Seite anklicken und hier zuordnen.',
   selectionCount: (n) => (n === 1 ? '1 Block ausgewählt' : `${n} Blöcke ausgewählt`),
-  addToRecord: 'Zum aktiven Datensatz',
+  addSelectedToRecord: (n) => `Ausgewählte Blöcke zum Datensatz hinzufügen (${n})`,
+  addAllToRecord: (n) => `Alle freien Blöcke dieser Seite zum Datensatz hinzufügen (${n})`,
   newRecordFromSelection: 'Neuer Datensatz aus Auswahl',
   clearSelection: 'Auswahl aufheben',
 }
@@ -78,6 +87,7 @@ export function PdfeditEditor() {
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [activeId, setActiveId] = useState('')
+  const [pdfBusy, setPdfBusy] = useState(false)
 
   useEffect(() => {
     void fetch('/api/pdfedits?limit=100&depth=0&sort=title', { credentials: 'same-origin' })
@@ -90,17 +100,59 @@ export function PdfeditEditor() {
       .catch(() => undefined)
   }, [])
 
+  const loadInput = useCallback(async (id: string) => {
+    const r = await fetch(`/api/pdfedit-data?id=${encodeURIComponent(id)}`, { credentials: 'same-origin' })
+    const data = await r.json()
+    if (!r.ok) throw new Error(data?.error?.message ?? `HTTP ${r.status}`)
+    setInput(data.input as W1PdfEditInput)
+  }, [])
+
   useEffect(() => {
     if (!docId) return
     setError('')
-    void fetch(`/api/pdfedit-data?id=${encodeURIComponent(docId)}`, { credentials: 'same-origin' })
-      .then(async (r) => {
-        const data = await r.json()
-        if (!r.ok) throw new Error(data?.error?.message ?? `HTTP ${r.status}`)
-        setInput(data.input as W1PdfEditInput)
-      })
-      .catch((e: Error) => setError(e.message))
-  }, [docId])
+    loadInput(docId).catch((e: Error) => setError(e.message))
+  }, [docId, loadInput])
+
+  // The editor's overlay mimics the PDF fonts; load them from Google Fonts.
+  const fontsUrl = useMemo(() => (input ? googleFontsCssUrl(input.textModel) : null), [input])
+  useEffect(() => {
+    if (!fontsUrl || document.querySelector(`link[data-pdfedit-fonts][href="${fontsUrl}"]`)) return
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = fontsUrl
+    link.dataset.pdfeditFonts = ''
+    document.head.appendChild(link)
+  }, [fontsUrl])
+
+  /** Writes the edited texts into the PDF (apply) or restores one page. */
+  const runPdfUpdate = useCallback(
+    async (body: { action: 'apply' } | { action: 'restore'; pageIndex: number }) => {
+      if (!docId) return
+      setPdfBusy(true)
+      setStatus(LABELS.applyPdfBusy ?? '')
+      try {
+        const result = (await postJson('/api/pdfedit-pdf', 'POST', { pdfeditId: docId, ...body })) as {
+          applied: string[]
+          skipped: Array<{ blockId: string; reason: string }>
+          warnings: string[]
+          editedPageIndexes: number[]
+        }
+        await loadInput(docId)
+        const parts = [
+          body.action === 'restore' ? `Seite ${body.pageIndex + 1} wiederhergestellt` : `PDF aktualisiert: ${result.applied.length} Text(e)`,
+          result.editedPageIndexes.length ? `Seiten: ${result.editedPageIndexes.map((i) => i + 1).join(', ')}` : '',
+          result.skipped.length ? `${result.skipped.length} nicht ersetzbar (Text im Formular-Objekt, gedreht oder nicht gefunden)` : '',
+          ...result.warnings,
+        ].filter(Boolean)
+        setStatus(parts.join(' · '))
+      } catch (e) {
+        setStatus(`Fehler: ${(e as Error).message}`)
+      } finally {
+        setPdfBusy(false)
+      }
+    },
+    [docId, loadInput],
+  )
 
   /** Replaces or appends a record in local state (keeps `order` sorting intact). */
   const upsertLocal = useCallback((record: W1PdfEditRecord) => {
@@ -244,6 +296,9 @@ export function PdfeditEditor() {
         onRecordDelete={onRecordDelete}
         onRecordReorder={onRecordReorder}
         onRecordSave={onRecordSave}
+        onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
+        onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
+        pdfBusy={pdfBusy}
         status={<span>{status}</span>}
       />
       </div>

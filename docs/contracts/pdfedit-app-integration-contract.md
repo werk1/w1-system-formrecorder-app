@@ -31,12 +31,39 @@ generated apps with module `pdfedit` active.
   - `pdfedit-data` — GET `?id=` → the prepared `W1PdfEditInput`
     (page images via `/api/media/file/<name>`, text model, ordered records). Admin-only.
   - `pdfedit-records` — POST upsert / PATCH reorder / DELETE. Admin-only.
+  - `pdfedit-pdf` — POST `{ pdfeditId, action: 'apply' | 'restore', pageIndex? }`.
+    Writes the edited record texts into the PDF with `applyTextEdits`
+    (`@werk1/w1-system-pdfedit/pdf`), starting from the backed-up original,
+    and re-renders the changed pages (`pdftoppm`). `restore` first resets the
+    texts of one page to the source. Admin-only. Responds with
+    `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds }`.
   - `pdfedit-export` — GET `?id=&format=csv|json&delimiter=&bom=`,
     CSV via package `recordsToCsv`. Admin-only.
+- Collection fields on `pdfedits` (collapsible "Aktualisiertes PDF"):
+  `originalPdf` (backup), `editedPdf`, `editedPages[]` (`pageIndex`, `image`,
+  `width`, `height`), `editedAt`, `editedRevision` (the flipbook revision the
+  update is based on; a mismatch hides it). Generated media carry
+  `generatedBy: 'pdfedit'` so they stay out of the media list and out of the
+  flipbook cleanup.
+- Reader hook on `flipbooks` (module-neutral fields): `pageOverrides[]`
+  (`pageIndex`, `image`, `width`, `height`), `pdfOverride`, `overrideRevision`,
+  `overrideSource`. `pdfUpdate.ts` mirrors the updated pages and PDF onto the
+  flipbook (and clears them again when the pdfedit has no edits left);
+  `mapFlipbookToInput` (`src/lib/blocks/flipbook/`, from `flipbook-system`)
+  substitutes them in the reader while `overrideRevision` equals
+  `publishedRevision`. The media delete guard protects the override media.
+- Server libs `src/lib/pdfedit/`: `pdfUpdate.ts` (apply/restore orchestration,
+  `collectEdits`, `resetPageBlocks`), `googleFonts.ts` (font provider via the
+  Google Fonts Developer API and a disk cache, key `APP_FONTS_GOOGLE_API_KEY`),
+  `textStyles.ts` (adds block styles to documents converted before style
+  extraction existed). The conversion pipeline additionally runs
+  `pdftohtml -xml -zoom 1 -i` (`extractStyleLayout`) and `applyTextStyles`.
 - Admin view `/admin/pdfedit`
   (`src/payload/components/PdfeditEditor.tsx`) — renders
   `W1PdfEditBlock` (modes `read`/`capture`) and persists every
-  callback through `pdfedit-records`; `PdfeditEditorLink` on the
+  callback through `pdfedit-records`, loads the fonts of the text model from
+  Google Fonts (`googleFontsCssUrl`) and runs the PDF update bar through
+  `pdfedit-pdf`; `PdfeditEditorLink` on the
   document links editor + exports.
 
 ## Generated App Wiring

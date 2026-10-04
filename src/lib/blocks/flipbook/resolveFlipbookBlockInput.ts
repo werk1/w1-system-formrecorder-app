@@ -95,6 +95,27 @@ export function readSectionOverrides(section: Rec): FlipbookSectionOverrides {
 }
 
 /**
+ * Swaps the page rows listed in `pageOverrides` (`pageIndex`, populated
+ * `image`, optional `width`/`height`) into the converted pages; everything
+ * else about a row (label) stays.
+ */
+export function applyPageOverrides(pages: unknown[], overrides: unknown): unknown[] {
+  if (!Array.isArray(overrides) || overrides.length === 0) return pages
+  const byIndex = new Map<number, Rec>()
+  for (const entry of overrides) {
+    const row = asRec(entry)
+    const index = num(row?.pageIndex)
+    if (row && index !== null && asRec(row.image)) byIndex.set(index, row)
+  }
+  return pages.map((page, index) => {
+    const override = byIndex.get(index)
+    const base = asRec(page)
+    if (!override || !base) return page
+    return { ...base, image: override.image, width: num(override.width) ?? base.width, height: num(override.height) ?? base.height }
+  })
+}
+
+/**
  * Pure mapping of a `flipbooks` document (depth >= 2) to `W1FlipbookInput`.
  * Merge order: section override > flipbook `defaultConfig` > package default.
  * Returns null when there is no published revision to show.
@@ -106,8 +127,11 @@ export function mapFlipbookToInput(
   const flipbook = asRec(doc)
   if (!flipbook || flipbook.isPublished !== true) return null
 
-  const pdfUrl = str(asRec(flipbook.publishedSourcePdf)?.url)
-  const pages = (Array.isArray(flipbook.pages) ? flipbook.pages : [])
+  // Replacements published by another module (e.g. pdfedit "PDF aktualisieren")
+  // count only while they were built on the published revision.
+  const overridesActive = str(flipbook.overrideRevision) !== null && flipbook.overrideRevision === flipbook.publishedRevision
+  const pdfUrl = (overridesActive ? str(asRec(flipbook.pdfOverride)?.url) : null) ?? str(asRec(flipbook.publishedSourcePdf)?.url)
+  const pages = applyPageOverrides(Array.isArray(flipbook.pages) ? flipbook.pages : [], overridesActive ? flipbook.pageOverrides : null)
     .map(mapFlipbookPage)
     .filter((page): page is W1FlipbookPage => page !== null)
   const slug = str(flipbook.slug)

@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import type { Payload } from 'payload'
 import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { relationId } from '@/lib/flipbook'
+import { ensureTextStyles } from '@/lib/pdfedit/textStyles'
 
 export const runtime = 'nodejs'
 
@@ -41,6 +42,9 @@ type PdfeditDoc = {
   title?: unknown
   slug?: unknown
   flipbook?: unknown
+  editedPdf?: unknown
+  editedPages?: Array<{ pageIndex?: unknown; image?: unknown; width?: unknown; height?: unknown }> | null
+  editedRevision?: unknown
 }
 type PdfeditrecordDoc = {
   id: string | number
@@ -100,6 +104,15 @@ export async function GET(request: NextRequest) {
     ...flipbook.pages.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
     relationId(flipbook.publishedSourcePdf),
   ].filter((v): v is string => Boolean(v))
+
+  // The updated PDF is only valid for the revision it was built from.
+  const editedValid = doc.editedRevision === flipbook.publishedRevision
+  const editedRows = editedValid ? (doc.editedPages ?? []) : []
+  const editedPdfId = editedValid ? relationId(doc.editedPdf) : null
+  mediaIds.push(
+    ...editedRows.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
+    ...(editedPdfId ? [editedPdfId] : []),
+  )
   const media = await loadMediaMap(payload, mediaIds)
 
   const pages = flipbook.pages
@@ -135,6 +148,24 @@ export async function GET(request: NextRequest) {
   }))
 
   const pdfMedia = media.get(String(relationId(flipbook.publishedSourcePdf)))
+  const textModel = (await ensureTextStyles(payload, flipbook)) ?? { revision: String(flipbook.publishedRevision), pages: [] }
+
+  const editedPages: Array<(typeof pages)[number] | null> = pages.map(() => null)
+  for (const row of editedRows) {
+    const index = typeof row.pageIndex === 'number' ? row.pageIndex : -1
+    const img = media.get(String(relationId(row.image)))
+    const imageUrl = mediaFileUrl(img?.filename)
+    if (index < 0 || index >= pages.length || !imageUrl) continue
+    editedPages[index] = {
+      ...pages[index],
+      id: String(relationId(row.image)),
+      imageUrl,
+      width: typeof row.width === 'number' ? row.width : pages[index].width,
+      height: typeof row.height === 'number' ? row.height : pages[index].height,
+      alt: `${pages[index].alt} (aktualisiert)`,
+    }
+  }
+  const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
 
   return NextResponse.json({
     input: {
@@ -142,8 +173,10 @@ export async function GET(request: NextRequest) {
       title: typeof doc.title === 'string' ? doc.title : undefined,
       pages,
       pdfUrl: mediaFileUrl(pdfMedia?.filename) ?? '',
-      textModel: flipbook.textModel ?? { revision: String(flipbook.publishedRevision), pages: [] },
+      textModel,
       records,
+      ...(editedPages.some(Boolean) ? { editedPages } : {}),
+      ...(editedPdfUrl ? { editedPdfUrl } : {}),
     },
     revision: flipbook.publishedRevision,
   })

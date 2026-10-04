@@ -124,8 +124,9 @@ const GENERATED_MEDIA_GUARD_COLLECTION = "flipbooks" as unknown as CollectionSlu
 
 /**
  * Module-neutral delete guard: only active when a `flipbooks` collection is
- * registered. Refuses deleting PDFs that a flipbook uses as source and page
- * images of a published flipbook revision. Imports no flipbook code.
+ * registered. Refuses deleting PDFs that a flipbook uses as source (or as
+ * published PDF override) and page images of a published flipbook revision
+ * (including `pageOverrides`). Imports no flipbook code.
  */
 async function assertMediaNotReferencedByFlipbook({
   id,
@@ -144,6 +145,8 @@ async function assertMediaNotReferencedByFlipbook({
         { publishedSourcePdf: { equals: id } },
         { "pages.image": { equals: id } },
         { "cover.image": { equals: id } },
+        { "pageOverrides.image": { equals: id } },
+        { pdfOverride: { equals: id } },
       ],
     },
     limit: 1,

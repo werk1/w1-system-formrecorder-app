@@ -188,6 +188,22 @@ export async function extractTextLayout(filePath: string): Promise<string> {
   return stdout
 }
 
+/**
+ * Extracts the document's text styles (font, size in points, colour) as
+ * `pdftohtml -xml -zoom 1 -i` XML. The pdfedit package maps them onto the
+ * text blocks (`applyTextStyles`).
+ */
+export async function extractStyleLayout(filePath: string): Promise<string> {
+  const { stdout } = await run(
+    'pdftohtml',
+    ['-xml', '-zoom', '1', '-i', '-stdout', filePath],
+    FLIPBOOK_PROBE_TIMEOUT_MS,
+    128 * 1024 * 1024,
+  )
+  if (!stdout.includes('<page')) throw new FlipbookConversionError('render-failed', 'keine Stilinformationen')
+  return stdout
+}
+
 export const resolveFlipbookTempRoot = () =>
   process.env.W1_FLIPBOOK_TMP_DIR ?? path.join(os.tmpdir(), 'w1-flipbook')
 

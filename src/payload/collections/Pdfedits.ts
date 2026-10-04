@@ -78,14 +78,60 @@ export const Pdfedits: CollectionConfig = {
     },
     {
       name: "flipbook",
-      label: { de: "Flipbook", en: "Flipbook" },
+      label: { de: "PDF-Dokument", en: "PDF document" },
       type: "relationship",
       relationTo: "flipbooks",
       required: true,
       admin: {
         description:
-          "Seitenbilder und Textmodell kommen aus der veröffentlichten Flipbook-Revision. Das Flipbook muss konvertiert sein (Status „ready“).",
+          "Seitenbilder und Textmodell kommen aus der veröffentlichten Revision des PDF-Dokuments. Das PDF-Dokument muss konvertiert sein (Status „ready“).",
       },
+    },
+    {
+      type: "collapsible",
+      label: { de: "Aktualisiertes PDF", en: "Updated PDF" },
+      admin: {
+        initCollapsed: true,
+        description:
+          "Wird vom Editor über „PDF aktualisieren“ erzeugt. Das Original bleibt als Sicherung erhalten.",
+      },
+      fields: [
+        {
+          name: "originalPdf",
+          label: { de: "Original-PDF (Sicherung)", en: "Original PDF (backup)" },
+          type: "upload",
+          relationTo: "media",
+          admin: { readOnly: true },
+        },
+        {
+          name: "editedPdf",
+          label: { de: "Aktualisiertes PDF", en: "Updated PDF" },
+          type: "upload",
+          relationTo: "media",
+          admin: { readOnly: true },
+        },
+        {
+          name: "editedPages",
+          label: { de: "Vorschau geänderter Seiten", en: "Edited page previews" },
+          type: "array",
+          admin: { readOnly: true },
+          fields: [
+            { name: "pageIndex", type: "number", required: true, min: 0 },
+            { name: "image", type: "upload", relationTo: "media", required: true },
+            { name: "width", type: "number" },
+            { name: "height", type: "number" },
+          ],
+        },
+        { name: "editedAt", type: "date", admin: { readOnly: true } },
+        {
+          name: "editedRevision",
+          type: "text",
+          admin: {
+            readOnly: true,
+            description: "Flipbook-Revision, auf der das aktualisierte PDF beruht. Ändert sich die Quelle, wird es ignoriert.",
+          },
+        },
+      ],
     },
   ],
 };
