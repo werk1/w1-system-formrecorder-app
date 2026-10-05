@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import type { Payload } from 'payload'
 import { recordsToCsv } from '@werk1/w1-system-pdfedit/export'
 import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
+import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 
 export const runtime = 'nodejs'
 
@@ -14,18 +14,6 @@ export const runtime = 'nodejs'
  * csv (default): RFC 4180 via `recordsToCsv` from the package — same
  * serializer the editor preview uses. json: records in export order.
  */
-
-const unauthorized = () =>
-  NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Admin login required.' } }, { status: 401 })
-
-async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
-  try {
-    const { user } = await payload.auth({ headers: request.headers })
-    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
-  } catch {
-    return false
-  }
-}
 
 export async function GET(request: NextRequest) {
   const payload = await getPayload({ config: configPromise })

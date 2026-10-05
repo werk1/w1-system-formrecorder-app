@@ -63,7 +63,8 @@ generated apps with module `pdfedit` active.
   `ensureImageModel`) and re-extracted when the revision changes; the flipbook conversion is not
   involved. Images inside Form XObjects are not listed.
 - `imageEdits` on `pdfedits` (json): `[{ imageId, revision, pageIndex, mediaId, rect, zoom?, panX?, panY? }]`, maintained
-  by `pdfedit-images` (`src/lib/pdfedit/imageEdits.ts`); entries of another revision are ignored.
+  by `pdfedit-images`; validation and bookkeeping are the package's `./host` (`buildImageEdit`,
+  `currentImageEdits`, …); entries of another revision are ignored.
   `pdfedit-data` returns `imageModel` and `imageEdits` (with `mediaUrl`) in the input.
 - Reader hook on `flipbooks` (module-neutral fields): `pageOverrides[]`
   (`pageIndex`, `image`, `width`, `height`), `pdfOverride`, `overrideRevision`,
@@ -72,8 +73,10 @@ generated apps with module `pdfedit` active.
   `mapFlipbookToInput` (`src/lib/blocks/flipbook/`, from `flipbook-system`)
   substitutes them in the reader while `overrideRevision` equals
   `publishedRevision`. The media delete guard protects the override media.
-- Server libs `src/lib/pdfedit/`: `pdfUpdate.ts` (apply/restore orchestration,
-  `collectEdits`, `resetPageBlocks`), `googleFonts.ts` (font provider via the
+- Server libs `src/lib/pdfedit/`: `pdfUpdate.ts` (apply/restore orchestration;
+  the planning functions `collectEdits`/`resetPageBlocks` come from the package's `./host`),
+  `adminAuth.ts` (the admin check shared by all pdfedit endpoints), `imageModel.ts`,
+  `imageFiles.ts` (media storage + WebP→PNG with `sharp`), `googleFonts.ts` (font provider via the
   Google Fonts Developer API and a disk cache, key `APP_FONTS_GOOGLE_API_KEY`),
   `textStyles.ts` (adds block styles to documents converted before style
   extraction existed). The conversion pipeline additionally runs
@@ -106,6 +109,9 @@ generated apps with module `pdfedit` active.
 - The package never fetches, writes, or knows Payload — the admin editor is
   the persistence adapter (`onRecordSave`/`onRecordCreate`/`onRecordDelete`/`onRecordReorder`
   → `pdfedit-records` endpoints).
+- Rules that every host needs identically live in the package's `./host` (pure TypeScript, no Payload):
+  image edit validation, text update planning and record payload sanitizing. A host imports them and
+  keeps only persistence, auth and admin binding.
 - `pageIndex` is 0-based; `blocks[].blockId` must reference ids of the
   document's `textModel` — keep custom endpoints consistent with
   `W1PdfEditRecordBlock`.

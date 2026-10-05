@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import type { Payload } from 'payload'
 import { editTextModel, TextModelEditError } from '@/lib/pdfedit/textModelEdit'
 import type { TextModelOp } from '@/lib/pdfedit/textModelEdit'
+import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 
 export const runtime = 'nodejs'
 
@@ -14,19 +14,10 @@ export const runtime = 'nodejs'
  *    | { pdfeditId, op: 'auto', pageIndex }
  *    → { changed } — the number of merged or split groups.
  */
-async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
-  try {
-    const { user } = await payload.auth({ headers: request.headers })
-    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
-  } catch {
-    return false
-  }
-}
-
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config: configPromise })
   if (!(await authenticateAdmin(payload, request))) {
-    return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Admin login required.' } }, { status: 401 })
+    return unauthorized()
   }
   const body = (await request.json().catch(() => null)) as ({ pdfeditId?: string | number } & Partial<TextModelOp>) | null
   const valid =

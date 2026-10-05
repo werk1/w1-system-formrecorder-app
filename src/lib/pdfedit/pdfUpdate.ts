@@ -1,15 +1,14 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import type { Payload } from 'payload'
-import { hasStyledSpans, spansText } from '@werk1/w1-system-pdfedit/export'
+import { collectEdits, currentImageEdits, resetPageBlocks } from '@werk1/w1-system-pdfedit/host'
 import { applyImageEdits, applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
-import type { W1PdfFontProvider, W1PdfImageReplacement, W1PdfTextEdit } from '@werk1/w1-system-pdfedit/pdf'
-import type { W1FormTextBlock, W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
+import type { W1PdfFontProvider, W1PdfImageReplacement } from '@werk1/w1-system-pdfedit/pdf'
+import type { W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { createJobDir, removeJobDir, renderPage } from '@/lib/flipbook/pdfConverter'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 import { createGoogleFontProvider } from './googleFonts'
-import { currentImageEdits } from './imageEdits'
 import { loadReplacement } from './imageFiles'
 
 export const PDFEDIT_GENERATOR = 'pdfedit'
@@ -69,67 +68,6 @@ const mediaDir = (payload: Payload): string => {
 
 const readMedia = (payload: Payload, id: IdLike) =>
   payload.findByID({ collection: 'media', id, depth: 0, overrideAccess: true }) as Promise<MediaDoc>
-
-/** Line breaks vs. spaces are not an edit. */
-const sameText = (a: string, b: string): boolean => a.replace(/\s+/g, ' ').trim() === b.replace(/\s+/g, ' ').trim()
-
-/** Source text of a block id inside the model. */
-const blockIndex = (model: W1FormTextModel): Map<string, W1FormTextBlock> => {
-  const map = new Map<string, W1FormTextBlock>()
-  for (const page of model.pages) for (const block of page.blocks) map.set(block.id, block)
-  return map
-}
-
-/**
- * Edits for all record blocks whose text differs from the PDF source text.
- * `onlyPages` limits the result (used for diagnostics); unknown block ids are dropped.
- */
-export function collectEdits(model: W1FormTextModel, records: readonly W1PdfEditRecord[]): W1PdfTextEdit[] {
-  const index = blockIndex(model)
-  const edits: W1PdfTextEdit[] = []
-  for (const record of records) {
-    for (const block of record.blocks) {
-      const source = index.get(block.blockId)
-      if (!source || source.level !== 'block') continue
-      // A restyle alone (same text, styled spans) is an edit too.
-      const styled = hasStyledSpans(block.spans) && sameText(spansText(block.spans ?? []), block.text)
-      if (!block.edited || (sameText(block.text, source.text) && !styled)) continue
-      edits.push({
-        blockId: source.id,
-        pageIndex: source.pageIndex,
-        rect: source.rect,
-        text: block.text,
-        ...(styled ? { spans: block.spans } : {}),
-        style: source.style,
-        lineCount: Math.max(1, source.childIds?.length ?? 1),
-      })
-    }
-  }
-  return edits
-}
-
-/** Resets the record blocks on one page (all pages without `pageIndex`) to their source text; returns the changed records. */
-export function resetPageBlocks(
-  model: W1FormTextModel,
-  records: readonly W1PdfEditRecord[],
-  pageIndex?: number,
-): W1PdfEditRecord[] {
-  const index = blockIndex(model)
-  const changed: W1PdfEditRecord[] = []
-  for (const record of records) {
-    let touched = false
-    const blocks = record.blocks.map((block) => {
-      const source = index.get(block.blockId)
-      if (!source || (pageIndex !== undefined && source.pageIndex !== pageIndex) || !(block.edited || block.text !== source.text || block.spans)) return block
-      touched = true
-      const { spans: _spans, ...plain } = block
-      void _spans
-      return { ...plain, text: source.text, edited: false }
-    })
-    if (touched) changed.push({ ...record, blocks })
-  }
-  return changed
-}
 
 const createPdfMedia = async (payload: Payload, params: { filePath: string; alt: string; pdfeditId: IdLike; revision: string }) =>
   (await payload.create({

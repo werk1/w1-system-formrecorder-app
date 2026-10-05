@@ -4,13 +4,14 @@ import { getPayload } from 'payload'
 import type { Payload } from 'payload'
 import { relationId } from '@/lib/flipbook'
 import { ensureImageModel } from '@/lib/pdfedit/imageModel'
+import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 import {
   ImageEditError,
   buildImageEdit,
   currentImageEdits,
   imageMimeAllowed,
   upsertImageEdit,
-} from '@/lib/pdfedit/imageEdits'
+} from '@werk1/w1-system-pdfedit/host'
 
 export const runtime = 'nodejs'
 
@@ -28,15 +29,6 @@ export const runtime = 'nodejs'
 
 const errorJson = (status: number, code: string, message: string) =>
   NextResponse.json({ error: { code, message } }, { status })
-
-async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
-  try {
-    const { user } = await payload.auth({ headers: request.headers })
-    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
-  } catch {
-    return false
-  }
-}
 
 type Body = {
   pdfeditId?: string | number
@@ -70,7 +62,7 @@ async function loadContext(payload: Payload, pdfeditId: string | number) {
 
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config: configPromise })
-  if (!(await authenticateAdmin(payload, request))) return errorJson(401, 'UNAUTHORIZED', 'Admin login required.')
+  if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const body = (await request.json().catch(() => null)) as Body | null
   if (body?.pdfeditId === undefined || !body.edit) return errorJson(400, 'INVALID_REQUEST', 'pdfeditId and edit are required.')
@@ -102,7 +94,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const payload = await getPayload({ config: configPromise })
-  if (!(await authenticateAdmin(payload, request))) return errorJson(401, 'UNAUTHORIZED', 'Admin login required.')
+  if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const body = (await request.json().catch(() => null)) as Body | null
   if (body?.pdfeditId === undefined || typeof body.imageId !== 'string') {

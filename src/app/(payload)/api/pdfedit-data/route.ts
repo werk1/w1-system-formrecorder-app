@@ -6,7 +6,8 @@ import type { W1PdfEditRecord, W1PdfImageEdit } from '@werk1/w1-system-pdfedit/t
 import { relationId } from '@/lib/flipbook'
 import { ensureTextStyles } from '@/lib/pdfedit/textStyles'
 import { ensureImageModel } from '@/lib/pdfedit/imageModel'
-import { currentImageEdits } from '@/lib/pdfedit/imageEdits'
+import { currentImageEdits } from '@werk1/w1-system-pdfedit/host'
+import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 
 export const runtime = 'nodejs'
 
@@ -15,18 +16,6 @@ export const runtime = 'nodejs'
  * page images + text model from the flipbook's published revision and the
  * ordered records. Admin-only (editor tool).
  */
-
-const unauthorized = () =>
-  NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Admin login required.' } }, { status: 401 })
-
-async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
-  try {
-    const { user } = await payload.auth({ headers: request.headers })
-    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
-  } catch {
-    return false
-  }
-}
 
 type MediaDoc = { id: string | number; filename?: unknown; alt?: unknown }
 type PageRow = { image?: unknown; width?: unknown; height?: unknown; label?: unknown }

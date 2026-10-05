@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import type { Payload } from 'payload'
 import { envFontProvider, PdfUpdateError, updatePdfedit } from '@/lib/pdfedit/pdfUpdate'
+import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 
 export const runtime = 'nodejs'
 // Rendering the changed pages can take a while on large documents.
@@ -23,18 +23,6 @@ export const maxDuration = 300
  *
  * Responds with `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds, appliedImages, skippedImages }`.
  */
-
-const unauthorized = () =>
-  NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Admin login required.' } }, { status: 401 })
-
-async function authenticateAdmin(payload: Payload, request: NextRequest): Promise<boolean> {
-  try {
-    const { user } = await payload.auth({ headers: request.headers })
-    return Boolean(user) && Boolean((user as { roles?: string[] } | null)?.roles?.includes('admin'))
-  } catch {
-    return false
-  }
-}
 
 type Body = { pdfeditId?: string | number; action?: string; pageIndex?: number }
 

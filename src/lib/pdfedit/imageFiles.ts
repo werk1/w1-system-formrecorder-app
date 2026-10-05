@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import type { Payload } from 'payload'
 import type { W1PdfImageReplacement } from '@werk1/w1-system-pdfedit/pdf'
-import type { StoredImageEdit } from './imageEdits'
+import type { StoredImageEdit } from '@werk1/w1-system-pdfedit/host'
 
 type MediaDoc = { filename?: unknown; mimeType?: unknown }
 
