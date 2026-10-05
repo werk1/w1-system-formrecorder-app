@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createFlipbookLabels } from '@/lib/blocks/flipbook/labels'
 import type { FlipbookMenuItem } from '@/lib/blocks/flipbook/resolveFlipbookBlockInput'
 import type { ClientLogo } from '@/lib/theme/clientLogoVariants'
@@ -34,6 +34,8 @@ type FlipbookReaderProps = {
   issue?: string
   /** Client name and marks from Site Settings: name or logo for the header, pictogram for the phone-landscape bar. */
   clientLogo?: ClientLogo
+  /** Login/account menu shown at the end of the header bar (not in the phone-landscape bar). */
+  account?: ReactNode
 }
 
 const subscribeNever = () => () => {}
@@ -46,7 +48,7 @@ function useHydrated() {
   return useSyncExternalStore(subscribeNever, () => true, () => false)
 }
 
-export function FlipbookReader({ input, locale, showHeader = false, items = [], activeSlug, siteTitle, issue, clientLogo }: FlipbookReaderProps) {
+export function FlipbookReader({ input, locale, showHeader = false, items = [], activeSlug, siteTitle, issue, clientLogo, account }: FlipbookReaderProps) {
   const deviceInfo = useBoundStore((state) => state.device)
   const hydrated = useHydrated()
 
@@ -111,9 +113,10 @@ export function FlipbookReader({ input, locale, showHeader = false, items = [], 
         title={brand}
         logo={clientLogo}
         tools={<FlipbookToolbar controls={controls} showThumbnails={false} showPdf />}
+        account={account}
       />
     ),
-    [items, activeSlug, locale, brand, clientLogo],
+    [items, activeSlug, locale, brand, clientLogo, account],
   )
 
   // Phone landscape: one slim bar (pictogram, counter, icons) beside the

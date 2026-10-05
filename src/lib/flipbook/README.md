@@ -23,7 +23,7 @@ System-Doku: `doc/w1-flipbook.md` (Datenfluss, Betrieb, Grenzen).
 |---|---|
 | `src/payload/collections/Flipbooks.ts` | Collection, Quellen-Validierung, Cover-Gruppe + `beforeChange` (`coverImage`), `afterChange`-Auslöser, `afterDelete`-Cleanup, `textModel` (JSON-Textebene der publizierten Revision) |
 | `src/payload/collections/Pdfedits.ts`, `Pdfeditrecords.ts` | Pdfedit-Dokument (Flipbook + Feld-Schema) und geordnete Datensätze |
-| `src/app/(payload)/api/pdfedit-*/route.ts`, `src/payload/components/PdfeditEditor*.tsx` | Pdfedit-Editor: Daten-Input, Record-Persistenz, CSV/JSON-Export (`/admin/pdfedit`) |
+| `src/app/(payload)/api/pdfedit-*/route.ts`, `src/components/pdfedit/*.tsx` | Pdfedit-Editor auf der Startseite (`/?book=<slug>&edit=1`): Daten-Input, Record-Persistenz, CSV/JSON-Export |
 | `src/payload/collections/Media.ts` | PDF-MIME, `generatedBy/For/Revision/ReleasedAt`, `baseListFilter`, modulneutraler `beforeDelete`-Guard |
 | `next.config.mjs` | `Cache-Control: public, max-age=3600` nur für `/api/media/file/fb-*` (erzeugte Seitenbilder) |
 | `src/payload/components/FlipbookConvertButton.tsx` | Status, Fortschritt, Neustart, Hinweis „Quelle geändert" |

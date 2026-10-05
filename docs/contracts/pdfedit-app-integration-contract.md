@@ -81,15 +81,18 @@ generated apps with module `pdfedit` active.
   `textStyles.ts` (adds block styles to documents converted before style
   extraction existed). The conversion pipeline additionally runs
   `pdftohtml -xml -zoom 1 -i` (`extractStyleLayout`) and `applyTextStyles`.
-- Admin view `/admin/pdfedit`
-  (`src/payload/components/PdfeditEditor.tsx`) — renders
-  `W1PdfEditBlock` (modes `read`/`capture`) and persists every
-  callback through `pdfedit-records`, loads the fonts of the text model from
-  Google Fonts (`googleFontsCssUrl`) and runs the PDF update bar through
-  `pdfedit-pdf`; `PdfeditEditorLink` on the
-  document links editor + exports.
-  Image editing: `usePdfeditMediaPicker.tsx` bridges Payload's media list drawer (JPEG/PNG/WebP only)
-  and the "create media" drawer to the package's `onPickImageFromMedia` / `onUploadImage`;
+- Editor (the only editor page, no Payload admin view): the start page
+  (`FlipbookHome`) shows the flipbook; the header carries an account menu
+  (`AccountMenu`, Payload login of `users`). After an `admin` login
+  `/?book=<slug>&edit=1` shows `src/components/pdfedit/PdfeditWorkspace.tsx`
+  (mounted by `PdfeditEditView`) for the first `pdfedits` entry of that PDF
+  document, in the app theme. Not in the phone-landscape bar. It renders
+  `W1PdfEditBlock` (modes `read`/`capture`), persists every callback through
+  `pdfedit-records`, loads the fonts of the text model from Google Fonts
+  (`googleFontsCssUrl`) and runs the PDF update bar through `pdfedit-pdf`;
+  `PdfeditEditorLink` on the pdfedit document links to it plus the exports.
+  Image editing: `useFrontendMediaPicker.tsx` (plain dialog on `/api/media`,
+  upload via REST) feeds the package's `onPickImageFromMedia` / `onUploadImage`;
   `onImageEditSave` / `onImageEditReset` persist through `pdfedit-images` (optimistic, reload on error).
 
 ## Generated App Wiring

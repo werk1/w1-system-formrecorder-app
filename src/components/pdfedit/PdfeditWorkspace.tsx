@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { W1PdfEditBlock, googleFontsCssUrl, mergeTextBlocks, splitTextBlock, suggestMerges } from '@werk1/w1-system-pdfedit'
 import type {
   W1PdfEditRecord,
@@ -9,20 +8,26 @@ import type {
   W1PdfEditInput,
   W1PdfEditLabels,
   W1PdfImageEdit,
+  W1PdfImagePick,
 } from '@werk1/w1-system-pdfedit/types'
-import { usePdfeditMediaPicker } from './usePdfeditMediaPicker'
+import type { ReactNode } from 'react'
 
 /**
- * Payload admin view `/admin/pdfedit`: the pdfedit overlay editor.
- * Loads the prepared input from `/api/pdfedit-data`, renders
- * `W1PdfEditBlock` and persists every callback through
- * `/api/pdfedit-records` (upsert/reorder/delete).
+ * The pdfedit overlay editor for one document: loads the prepared input from
+ * `/api/pdfedit-data`, renders `W1PdfEditBlock` and persists every callback
+ * through `/api/pdfedit-records`, `/api/pdfedit-textmodel`, `/api/pdfedit-pdf`
+ * and `/api/pdfedit-images`. It is the only editor page: the start page mounts
+ * it after an admin login (`PdfeditEditView`).
  *
  * The component keeps a local copy of `input.records` so edits feel instant;
- * the package only emits changes — this view is the persistence adapter.
+ * the package only emits changes — this component is the persistence adapter.
  */
 
-type ListEntry = { id: string; title: string }
+export type PdfeditMediaPicker = {
+  pickFromMedia: () => Promise<W1PdfImagePick | null>
+  uploadMedia: () => Promise<W1PdfImagePick | null>
+  drawers: ReactNode
+}
 
 const LABELS: W1PdfEditLabels = {
   previous: 'Zurück',
@@ -108,27 +113,13 @@ async function postJson(url: string, method: string, body: unknown): Promise<Rec
   return (await res.json()) as Record<string, unknown>
 }
 
-export function PdfeditEditor() {
-  const searchParams = useSearchParams()
-  const [list, setList] = useState<ListEntry[]>([])
-  const [docId, setDocId] = useState<string | null>(searchParams.get('doc'))
+export function PdfeditWorkspace({ docId, media }: { docId: string; media: PdfeditMediaPicker }) {
   const [input, setInput] = useState<W1PdfEditInput | null>(null)
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [activeId, setActiveId] = useState('')
   const [pdfBusy, setPdfBusy] = useState(false)
-  const { pickFromMedia, uploadMedia, drawers } = usePdfeditMediaPicker()
-
-  useEffect(() => {
-    void fetch('/api/pdfedits?limit=100&depth=0&sort=title', { credentials: 'same-origin' })
-      .then((r) => r.json())
-      .then((data: { docs?: Array<{ id: string | number; title?: string }> }) => {
-        setList(
-          (data.docs ?? []).map((d) => ({ id: String(d.id), title: d.title ?? String(d.id) })),
-        )
-      })
-      .catch(() => undefined)
-  }, [])
+  const { pickFromMedia, uploadMedia, drawers } = media
 
   const loadInput = useCallback(async (id: string) => {
     const r = await fetch(`/api/pdfedit-data?id=${encodeURIComponent(id)}`, { credentials: 'same-origin' })
@@ -138,7 +129,7 @@ export function PdfeditEditor() {
   }, [])
 
   useEffect(() => {
-    if (!docId) return
+    setInput(null)
     setError('')
     loadInput(docId).catch((e: Error) => setError(e.message))
   }, [docId, loadInput])
@@ -157,7 +148,6 @@ export function PdfeditEditor() {
   /** Writes the edited texts into the PDF (apply) or restores one page. */
   const runPdfUpdate = useCallback(
     async (body: { action: 'apply' } | { action: 'restore'; pageIndex: number } | { action: 'restore-all' }) => {
-      if (!docId) return
       setPdfBusy(true)
       setStatus(LABELS.applyPdfBusy ?? '')
       try {
@@ -204,7 +194,6 @@ export function PdfeditEditor() {
   /** Merges/splits text blocks on the server, then mirrors the change locally. */
   const editBlocks = useCallback(
     async (body: { op: 'merge'; blockIds: string[] } | { op: 'split'; blockId: string } | { op: 'auto'; pageIndex: number }) => {
-      if (!docId) return
       try {
         await postJson('/api/pdfedit-textmodel', 'POST', { pdfeditId: docId, ...body })
         setInput((current) => {
@@ -229,7 +218,6 @@ export function PdfeditEditor() {
 
   const persistRecord = useCallback(
     async (record: W1PdfEditRecord) => {
-      if (!docId) return
       await postJson('/api/pdfedit-records', 'POST', { pdfeditId: docId, record })
       setStatus(LABELS.recordSaved)
     },
@@ -247,7 +235,7 @@ export function PdfeditEditor() {
 
   const onRecordCreate = useCallback(
     ({ pageIndex, blocks }: { pageIndex: number; blocks: W1PdfEditRecordBlock[] }) => {
-      if (!docId || !input) return
+      if (!input) return
       const order = input.records.reduce((max, r) => Math.max(max, r.order), -1) + 1
       void postJson('/api/pdfedit-records', 'POST', {
         pdfeditId: docId,
@@ -278,7 +266,7 @@ export function PdfeditEditor() {
 
   const onRecordReorder = useCallback(
     (ids: string[]) => {
-      if (!docId || !input) return
+      if (!input) return
       const byId = new Map(input.records.map((r) => [r.id, r]))
       const reordered = ids
         .map((id, index) => {
@@ -297,7 +285,6 @@ export function PdfeditEditor() {
   /** Stores an image replacement (optimistic), reloads the input when the server refuses it. */
   const onImageEditSave = useCallback(
     (edit: W1PdfImageEdit) => {
-      if (!docId) return
       setInput((current) =>
         current ? { ...current, imageEdits: [...(current.imageEdits ?? []).filter((e) => e.imageId !== edit.imageId), edit] } : current,
       )
@@ -322,7 +309,6 @@ export function PdfeditEditor() {
 
   const onImageEditReset = useCallback(
     (imageId: string) => {
-      if (!docId) return
       setInput((current) =>
         current ? { ...current, imageEdits: (current.imageEdits ?? []).filter((e) => e.imageId !== imageId) } : current,
       )
@@ -337,41 +323,19 @@ export function PdfeditEditor() {
   )
 
   const exportCsv = useMemo(
-    () => (docId ? `/api/pdfedit-export?id=${encodeURIComponent(docId)}&format=csv` : '#'),
+    () => `/api/pdfedit-export?id=${encodeURIComponent(docId)}&format=csv`,
     [docId],
   )
   const exportJson = useMemo(
-    () => (docId ? `/api/pdfedit-export?id=${encodeURIComponent(docId)}&format=json` : '#'),
+    () => `/api/pdfedit-export?id=${encodeURIComponent(docId)}&format=json`,
     [docId],
   )
-
-  if (!docId) {
-    return (
-      <div style={{ padding: 24, maxWidth: 640 }}>
-        <h2>Pdfedit</h2>
-        <p>Dokument wählen:</p>
-        <ul style={{ lineHeight: 2 }}>
-          {list.map((entry) => (
-            <li key={entry.id}>
-              <a href={`/admin/pdfedit?doc=${entry.id}`} onClick={(e) => { e.preventDefault(); setDocId(entry.id) }}>
-                {entry.title}
-              </a>
-            </li>
-          ))}
-          {list.length === 0 ? <li>Keine Pdfedit vorhanden.</li> : null}
-        </ul>
-      </div>
-    )
-  }
 
   if (error) {
     return (
       <div style={{ padding: 24 }}>
         <h2>Pdfedit</h2>
         <p>Fehler: {error}</p>
-        <button type="button" onClick={() => { setDocId(null); setInput(null); setError('') }}>
-          Zurück zur Auswahl
-        </button>
       </div>
     )
   }
@@ -383,11 +347,8 @@ export function PdfeditEditor() {
   return (
     // Whole page fits the viewport height (like the flipbook reader): the
     // block runs in `fill` mode inside a viewport-sized column.
-    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 96px)', minHeight: 480 }}>
+    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', height: '100%', minHeight: 480 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-        <button type="button" onClick={() => { setDocId(null); setInput(null) }}>
-          ← Auswahl
-        </button>
         <a href={exportCsv}>CSV</a>
         <a href={exportJson}>JSON</a>
       </div>

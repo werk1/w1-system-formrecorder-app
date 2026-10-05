@@ -5,16 +5,29 @@ import type { CSSProperties } from 'react'
 import { useDocumentInfo } from '@payloadcms/ui'
 
 /**
- * Link to the overlay editor view (`/admin/pdfedit?doc=<id>`) plus the
+ * Link to the overlay editor view (the start page `/?book=<slug>&edit=1`, the only editor page) plus the
  * export endpoints, shown on the pdfedit edit screen.
  */
 export function PdfeditEditorLink() {
   const { id } = useDocumentInfo()
   const [origin, setOrigin] = useState(process.env.NEXT_PUBLIC_SERVER_URL ?? '')
+  const [bookSlug, setBookSlug] = useState('')
 
   useEffect(() => {
     setOrigin(window.location.origin)
   }, [])
+
+  // The start page picks the document by the slug of its PDF document (flipbook).
+  useEffect(() => {
+    if (!id) return
+    void fetch(`/api/pdfedits/${id}?depth=1`, { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((doc: { flipbook?: { slug?: string } | string | number } | null) => {
+        const flipbook = doc?.flipbook
+        if (flipbook && typeof flipbook === 'object' && flipbook.slug) setBookSlug(flipbook.slug)
+      })
+      .catch(() => undefined)
+  }, [id])
 
   if (!id) {
     return <div style={styles.container}>Speichern Sie den Pdfedit, um den Editor zu öffnen.</div>
@@ -22,9 +35,11 @@ export function PdfeditEditorLink() {
 
   return (
     <div style={styles.container}>
-      <a style={styles.link} href={`${origin}/admin/pdfedit?doc=${id}`}>
-        Editor öffnen
-      </a>
+      {bookSlug ? (
+        <a style={styles.link} href={`${origin}/?book=${encodeURIComponent(bookSlug)}&edit=1`}>
+          Editor öffnen
+        </a>
+      ) : null}
       <a style={styles.link} href={`${origin}/api/pdfedit-export?id=${id}&format=csv`}>
         CSV exportieren
       </a>

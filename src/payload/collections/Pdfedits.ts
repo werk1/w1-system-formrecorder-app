@@ -8,7 +8,7 @@ const adminOnly: Access = ({ req: { user } }) =>
  * Pdfedit documents bind a converted flipbook (page images + published
  * `textModel`). Editors capture entries on the rendered pages as ordered
  * records (`pdfeditrecords`): text blocks are assigned to records and named
- * afterwards in the package editor (`/admin/pdfedit`).
+ * afterwards in the package editor (start page, `/?book=<slug>&edit=1`).
  */
 export const Pdfedits: CollectionConfig = {
   slug: "pdfedits",

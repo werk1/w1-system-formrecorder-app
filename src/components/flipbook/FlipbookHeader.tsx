@@ -15,6 +15,7 @@ export function FlipbookHeader({
   title,
   logo,
   tools,
+  account,
   showMenu = false,
 }: {
   items: FlipbookMenuItem[]
@@ -25,6 +26,8 @@ export function FlipbookHeader({
   logo?: ClientLogo
   /** Viewer controls shown at the right end of the bar. */
   tools?: ReactNode
+  /** Login/account menu at the very end of the bar. */
+  account?: ReactNode
   /** "Flipbooks" menu of all published books; hidden until the archive feature. */
   showMenu?: boolean
 }) {
@@ -99,6 +102,7 @@ export function FlipbookHeader({
       </nav>
       )}
       {tools}
+      {account}
       </div>
     </header>
   )

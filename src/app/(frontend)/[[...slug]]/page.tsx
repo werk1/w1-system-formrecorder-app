@@ -15,7 +15,7 @@ import { FlipbookHome } from '@/components/flipbook/FlipbookHome'
 
 type FrontendPageProps = {
   params: Promise<{ slug?: string[] }>
-  searchParams: Promise<{ locale?: string; book?: string; page?: string }>
+  searchParams: Promise<{ locale?: string; book?: string; page?: string; edit?: string }>
 }
 
 export const dynamic = 'force-dynamic'
@@ -59,7 +59,7 @@ export default async function FrontendPage(props: FrontendPageProps) {
   const locale = resolveLocale(searchParams.locale)
   const route = segmentsToRoute(slug)
   if (route === '/') {
-    return <FlipbookHome locale={searchParams.locale} book={searchParams.book} page={searchParams.page} />
+    return <FlipbookHome locale={searchParams.locale} book={searchParams.book} page={searchParams.page} edit={searchParams.edit} />
   }
 
   const page = await resolveFrontendPageByRoute({ route, locale })

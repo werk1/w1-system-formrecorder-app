@@ -208,12 +208,6 @@ export default buildConfig({
         Logo: './payload/components/W1Logo#W1Logo',
         Icon: './payload/components/W1Logo#W1Icon',
       },
-      views: {
-        pdfedit: {
-          Component: './payload/components/PdfeditEditor#PdfeditEditor',
-          path: '/pdfedit' as `/${string}`,
-        },
-      },
     },
     meta: {
       titleSuffix: ' - w1-system-pdfedit-app',
