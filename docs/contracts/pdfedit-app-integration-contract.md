@@ -37,6 +37,11 @@ generated apps with module `pdfedit` active.
     and re-renders the changed pages (`pdftoppm`). `restore` first resets the
     texts of one page to the source. Admin-only. Responds with
     `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds }`.
+  - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect? } }` upserts one image
+    replacement, DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
+    against the image model of the published revision: unknown ids, full-page (scan) and
+    rotated images are refused, the media must be JPEG/PNG, `rect` must lie (almost) on the page.
+    It stores intent only; the PDF is not written yet (no writer in this stage).
   - `pdfedit-export` — GET `?id=&format=csv|json&delimiter=&bom=`,
     CSV via package `recordsToCsv`. Admin-only.
 - Collection fields on `pdfedits` (collapsible "Aktualisiertes PDF"):
@@ -45,6 +50,14 @@ generated apps with module `pdfedit` active.
   update is based on; a mismatch hides it). Generated media carry
   `generatedBy: 'pdfedit'` so they stay out of the media list and out of the
   flipbook cleanup.
+- Image model: `imageModel` on `flipbooks` (server-only like `textModel`) holds the
+  `W1PdfImageModel` (`extractImagePlacements` from `/pdf`), bound to the published revision. It is
+  extracted lazily from the source PDF on first use (`src/lib/pdfedit/imageModel.ts`,
+  `ensureImageModel`) and re-extracted when the revision changes; the flipbook conversion is not
+  involved. Images inside Form XObjects are not listed.
+- `imageEdits` on `pdfedits` (json): `[{ imageId, revision, pageIndex, mediaId, rect }]`, maintained
+  by `pdfedit-images` (`src/lib/pdfedit/imageEdits.ts`); entries of another revision are ignored.
+  `pdfedit-data` returns `imageModel` and `imageEdits` (with `mediaUrl`) in the input.
 - Reader hook on `flipbooks` (module-neutral fields): `pageOverrides[]`
   (`pageIndex`, `image`, `width`, `height`), `pdfOverride`, `overrideRevision`,
   `overrideSource`. `pdfUpdate.ts` mirrors the updated pages and PDF onto the

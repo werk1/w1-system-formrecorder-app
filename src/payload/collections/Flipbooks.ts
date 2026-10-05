@@ -295,6 +295,23 @@ export const Flipbooks: CollectionConfig = {
       },
     },
     {
+      name: "imageModel",
+      type: "json",
+      // Same reasoning as `textModel`: server-only, never exposed through the
+      // admin form or REST. Filled lazily per revision by the pdfedit endpoints.
+      access: {
+        read: () => false,
+        update: () => false,
+        create: () => false,
+      },
+      admin: {
+        readOnly: true,
+        hidden: true,
+        description:
+          "Extrahierte Bildplatzierungen (W1PdfImageModel) der veröffentlichten Revision – Grundlage für den Pdfedit-Bildeditor.",
+      },
+    },
+    {
       name: "cover",
       label: { de: "Cover", en: "Cover" },
       type: "group",

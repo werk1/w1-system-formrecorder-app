@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
+import type { W1PdfEditRecord, W1PdfImageEdit } from '@werk1/w1-system-pdfedit/types'
 import { relationId } from '@/lib/flipbook'
 import { ensureTextStyles } from '@/lib/pdfedit/textStyles'
+import { ensureImageModel } from '@/lib/pdfedit/imageModel'
+import { currentImageEdits } from '@/lib/pdfedit/imageEdits'
 
 export const runtime = 'nodejs'
 
@@ -35,6 +37,7 @@ type FlipbookDoc = {
   publishedSourcePdf?: unknown
   publishedRevision?: unknown
   textModel?: unknown
+  imageModel?: unknown
   pages?: PageRow[] | null
 }
 type PdfeditDoc = {
@@ -45,6 +48,7 @@ type PdfeditDoc = {
   editedPdf?: unknown
   editedPages?: Array<{ pageIndex?: unknown; image?: unknown; width?: unknown; height?: unknown }> | null
   editedRevision?: unknown
+  imageEdits?: unknown
 }
 type PdfeditrecordDoc = {
   id: string | number
@@ -113,6 +117,9 @@ export async function GET(request: NextRequest) {
     ...editedRows.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
     ...(editedPdfId ? [editedPdfId] : []),
   )
+  const imageModel = await ensureImageModel(payload, flipbook)
+  const storedImageEdits = imageModel ? currentImageEdits(doc.imageEdits, imageModel.revision) : []
+  mediaIds.push(...storedImageEdits.map((e) => e.mediaId))
   const media = await loadMediaMap(payload, mediaIds)
 
   const pages = flipbook.pages
@@ -165,6 +172,11 @@ export async function GET(request: NextRequest) {
       alt: `${pages[index].alt} (aktualisiert)`,
     }
   }
+  const imageEdits: W1PdfImageEdit[] = storedImageEdits.flatMap((e) => {
+    const mediaUrl = mediaFileUrl(media.get(e.mediaId)?.filename)
+    // A deleted replacement media drops out of the editor (the writer skips it too).
+    return mediaUrl ? [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: e.mediaId, mediaUrl, rect: e.rect }] : []
+  })
   const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
 
   return NextResponse.json({
@@ -175,6 +187,7 @@ export async function GET(request: NextRequest) {
       pdfUrl: mediaFileUrl(pdfMedia?.filename) ?? '',
       textModel,
       records,
+      ...(imageModel ? { imageModel, imageEdits } : {}),
       ...(editedPages.some(Boolean) ? { editedPages } : {}),
       ...(editedPdfUrl ? { editedPdfUrl } : {}),
     },

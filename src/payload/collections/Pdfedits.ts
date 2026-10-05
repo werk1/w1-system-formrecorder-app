@@ -88,6 +88,16 @@ export const Pdfedits: CollectionConfig = {
       },
     },
     {
+      name: "imageEdits",
+      label: { de: "Bildänderungen", en: "Image edits" },
+      type: "json",
+      admin: {
+        readOnly: true,
+        description:
+          'Ersetzte Bilder: [{ "imageId": string, "revision": string, "pageIndex": number, "mediaId": string, "rect": { "x", "y", "w", "h" } }]. Wird vom Editor über /api/pdfedit-images gepflegt; Einträge einer anderen Revision werden ignoriert.',
+      },
+    },
+    {
       type: "collapsible",
       label: { de: "Aktualisiertes PDF", en: "Updated PDF" },
       admin: {
