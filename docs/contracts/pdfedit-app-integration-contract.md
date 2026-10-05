@@ -1,6 +1,6 @@
 # Pdfedit App Integration Snippet
 
-Snippet-Version: 2026-10-03
+Snippet-Version: 2026-10-05
 Status: current
 
 This file is the package-owned integration snippet that `w1-system-app-creator`
