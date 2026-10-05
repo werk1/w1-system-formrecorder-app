@@ -88,7 +88,10 @@ const LABELS: W1PdfEditLabels = {
   imageOk: 'OK',
   imageCancel: 'Abbrechen',
   imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: ersetzt wird nur diese Stelle, die anderen bleiben unverändert.',
-  imageLockHint: 'Ziehen: verschieben · Ecken ziehen: skalieren (Umschalt: Seitenverhältnis frei) · Pfeiltasten: feinjustieren',
+  imageLockHint: 'Bild ziehen: im Container verschieben · Mausrad / Regler: zoomen · Ecken: Containergröße (Umschalt: Seitenverhältnis frei) · ✥: Container verschieben · Pfeiltasten: Bild, Alt+Pfeiltasten: Container',
+  imageZoom: 'Zoom',
+  imageFit: 'Einpassen',
+  imageMoveContainer: 'Container verschieben',
 }
 
 async function postJson(url: string, method: string, body: unknown): Promise<Record<string, unknown>> {
@@ -300,7 +303,12 @@ export function PdfeditEditor() {
       )
       void postJson('/api/pdfedit-images', 'POST', {
         pdfeditId: docId,
-        edit: { imageId: edit.imageId, mediaId: edit.mediaId, rect: edit.rect, ...(edit.remove ? { remove: true } : {}) },
+        edit: {
+          imageId: edit.imageId,
+          mediaId: edit.mediaId,
+          rect: edit.rect,
+          ...(edit.remove ? { remove: true } : { zoom: edit.zoom, panX: edit.panX, panY: edit.panY }),
+        },
       })
         // The page preview is a raster: the replacement only shows up for real once the PDF is written.
         .then(() => runPdfUpdate({ action: 'apply' }))

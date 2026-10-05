@@ -10,7 +10,12 @@ export type StoredImageEdit = {
   mediaId: string
   /** The image is deleted from the PDF, not replaced. */
   remove?: true
+  /** The container of the replacement (starts on the area of the original image). */
   rect: W1FormRect
+  /** Zoom (≥ 1) and pan (share of the container size) of the image inside `rect`. */
+  zoom?: number
+  panX?: number
+  panY?: number
 }
 
 export class ImageEditError extends Error {
@@ -25,6 +30,9 @@ export class ImageEditError extends Error {
 /** Largest overhang of the target box over the page (a replacement may bleed slightly). */
 const MARGIN = 0.25
 const MIN_SIDE = 0.005
+const ZOOM_MAX = 8
+/** The writer clamps the pan to what keeps the image covering its container; this only rejects nonsense. */
+const PAN_LIMIT = 8
 // The media collection converts uploads to WebP; the PDF update converts it to PNG for embedding.
 const IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
@@ -54,10 +62,23 @@ export function sanitizeRect(raw: unknown): W1FormRect {
   return { x: r.x, y: r.y, w: r.w, h: r.h }
 }
 
+/** Zoom 1..8 and pan within ±8 container sizes; anything else is rejected. */
+export function sanitizeFit(raw: { zoom?: unknown; panX?: unknown; panY?: unknown }): { zoom?: number; panX?: number; panY?: number } {
+  const out: { zoom?: number; panX?: number; panY?: number } = {}
+  for (const key of ['zoom', 'panX', 'panY'] as const) {
+    const v = raw[key]
+    if (v === undefined || v === null) continue
+    if (!finite(v)) throw new ImageEditError('INVALID_REQUEST', `${key} must be a finite number.`)
+    if (key === 'zoom' ? v < 1 || v > ZOOM_MAX : Math.abs(v) > PAN_LIMIT) throw new ImageEditError('INVALID_REQUEST', `${key} is out of range.`)
+    out[key] = v
+  }
+  return out
+}
+
 /** Builds the stored edit for an image of the current model; throws `ImageEditError` otherwise. */
 export function buildImageEdit(
   model: W1PdfImageModel,
-  input: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown },
+  input: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown; zoom?: unknown; panX?: unknown; panY?: unknown },
 ): StoredImageEdit {
   if (typeof input.imageId !== 'string' || !input.imageId) throw new ImageEditError('INVALID_REQUEST', 'imageId is required.')
   const remove = input.remove === true
@@ -73,7 +94,7 @@ export function buildImageEdit(
     revision: model.revision,
     pageIndex: image.pageIndex,
     mediaId: remove ? '' : String(input.mediaId),
-    ...(remove ? { remove: true as const } : {}),
+    ...(remove ? { remove: true as const } : sanitizeFit(input)),
     rect: sanitizeRect(input.rect ?? image.rect),
   }
 }
@@ -91,7 +112,8 @@ export function currentImageEdits(raw: unknown, revision: string): StoredImageEd
       continue
     }
     if (e.mediaId === undefined || e.mediaId === null || e.mediaId === '') continue
-    out.push({ imageId: e.imageId, revision, pageIndex: e.pageIndex, mediaId: String(e.mediaId), rect: e.rect })
+    const fit = (['zoom', 'panX', 'panY'] as const).filter((k) => typeof e[k] === 'number' && Number.isFinite(e[k])).reduce((acc, k) => ({ ...acc, [k]: e[k] }), {})
+    out.push({ imageId: e.imageId, revision, pageIndex: e.pageIndex, mediaId: String(e.mediaId), rect: e.rect, ...fit })
   }
   return out
 }

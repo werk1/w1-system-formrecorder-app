@@ -44,8 +44,8 @@ generated apps with module `pdfedit` active.
     page also drops its image edits. The response additionally carries `appliedImages` and
     `skippedImages`. The editor starts the update automatically after a replacement is saved or reset,
     because the page preview is a raster and shows the change only after the PDF was rewritten.
-  - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect? } }` upserts one image
-    replacement (`edit: { imageId, remove: true }` deletes the image from the PDF instead, no media), DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
+  - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect?, zoom?, panX?, panY? } }` upserts one image
+    replacement (`rect` is the container, `zoom`/`panX`/`panY` position the image inside it) (`edit: { imageId, remove: true }` deletes the image from the PDF instead, no media), DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
     against the image model of the published revision: unknown ids, full-page (scan) and
     rotated images are refused, the media must be JPEG/PNG/WebP (WebP is converted to PNG when the PDF is updated), `rect` must lie (almost) on the page.
     It stores intent only; the PDF is written by `pdfedit-pdf`.
@@ -62,7 +62,7 @@ generated apps with module `pdfedit` active.
   extracted lazily from the source PDF on first use (`src/lib/pdfedit/imageModel.ts`,
   `ensureImageModel`) and re-extracted when the revision changes; the flipbook conversion is not
   involved. Images inside Form XObjects are not listed.
-- `imageEdits` on `pdfedits` (json): `[{ imageId, revision, pageIndex, mediaId, rect }]`, maintained
+- `imageEdits` on `pdfedits` (json): `[{ imageId, revision, pageIndex, mediaId, rect, zoom?, panX?, panY? }]`, maintained
   by `pdfedit-images` (`src/lib/pdfedit/imageEdits.ts`); entries of another revision are ignored.
   `pdfedit-data` returns `imageModel` and `imageEdits` (with `mediaUrl`) in the input.
 - Reader hook on `flipbooks` (module-neutral fields): `pageOverrides[]`

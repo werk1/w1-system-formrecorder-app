@@ -94,7 +94,7 @@ export const Pdfedits: CollectionConfig = {
       admin: {
         readOnly: true,
         description:
-          'Ersetzte Bilder: [{ "imageId": string, "revision": string, "pageIndex": number, "mediaId": string (leer bei entferntem Bild), "remove"?: true, "rect": { "x", "y", "w", "h" } }]. Wird vom Editor über /api/pdfedit-images gepflegt; Einträge einer anderen Revision werden ignoriert.',
+          'Ersetzte Bilder: [{ "imageId": string, "revision": string, "pageIndex": number, "mediaId": string (leer bei entferntem Bild), "remove"?: true, "rect": { "x", "y", "w", "h" } (Container), "zoom"?: number, "panX"?: number, "panY"?: number }]. Wird vom Editor über /api/pdfedit-images gepflegt; Einträge einer anderen Revision werden ignoriert.',
       },
     },
     {

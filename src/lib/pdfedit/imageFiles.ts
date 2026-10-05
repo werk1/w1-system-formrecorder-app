@@ -33,7 +33,10 @@ export async function loadReplacement(payload: Payload, edit: StoredImageEdit): 
       bytes = new Uint8Array(await sharp(file).png().toBuffer())
       format = 'png'
     }
-    return { ok: true, replacement: { imageId: edit.imageId, pageIndex: edit.pageIndex, rect: edit.rect, bytes, format } }
+    return {
+      ok: true,
+      replacement: { imageId: edit.imageId, pageIndex: edit.pageIndex, rect: edit.rect, bytes, format, zoom: edit.zoom, panX: edit.panX, panY: edit.panY },
+    }
   } catch {
     return { ok: false, imageId: edit.imageId, reason: 'media-unreadable' }
   }

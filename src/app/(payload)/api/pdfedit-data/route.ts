@@ -176,7 +176,9 @@ export async function GET(request: NextRequest) {
     if (e.remove) return [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: '', remove: true as const, rect: e.rect }]
     const mediaUrl = mediaFileUrl(media.get(e.mediaId)?.filename)
     // A deleted replacement media drops out of the editor (the writer skips it too).
-    return mediaUrl ? [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: e.mediaId, mediaUrl, rect: e.rect }] : []
+    return mediaUrl
+      ? [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: e.mediaId, mediaUrl, rect: e.rect, zoom: e.zoom, panX: e.panX, panY: e.panY }]
+      : []
   })
   const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
 

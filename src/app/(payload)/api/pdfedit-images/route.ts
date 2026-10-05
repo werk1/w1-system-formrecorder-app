@@ -19,8 +19,9 @@ export const runtime = 'nodejs'
  * intent (which image gets which media at which box); the PDF is written by
  * `pdfedit-pdf` ("PDF aktualisieren").
  *
- * POST   { pdfeditId, edit: { imageId, mediaId, rect? } } → upsert; returns the stored edit.
- *        `rect` defaults to the image's current box.
+ * POST   { pdfeditId, edit: { imageId, mediaId, rect?, zoom?, panX?, panY? } } → upsert; returns the stored edit.
+ *        `rect` is the container (defaults to the image's current box); `zoom`/`panX`/`panY` position
+ *        the image inside it (see `W1PdfImageEdit`).
  *        `{ imageId, remove: true }` deletes the image from the PDF instead (no media).
  * DELETE { pdfeditId, imageId } → back to the original image.
  */
@@ -39,7 +40,7 @@ async function authenticateAdmin(payload: Payload, request: NextRequest): Promis
 
 type Body = {
   pdfeditId?: string | number
-  edit?: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown }
+  edit?: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown; zoom?: unknown; panX?: unknown; panY?: unknown }
   imageId?: unknown
 }
 
