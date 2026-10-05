@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       .findByID({ collection: 'media', id: edit.mediaId, depth: 0, overrideAccess: true })
       .catch(() => null)) as { mimeType?: unknown } | null
     if (!media) throw new ImageEditError('BAD_MEDIA', 'Media not found.')
-    if (!imageMimeAllowed(media.mimeType)) throw new ImageEditError('BAD_MEDIA', 'Only JPEG and PNG images can be placed in a PDF.')
+    if (!imageMimeAllowed(media.mimeType)) throw new ImageEditError('BAD_MEDIA', 'Only JPEG, PNG and WebP images can be placed in a PDF.')
     const next = upsertImageEdit(currentImageEdits(ctx.doc.imageEdits, ctx.model.revision), edit)
     await payload.update({
       collection: 'pdfedits' as never,

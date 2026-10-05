@@ -40,7 +40,7 @@ generated apps with module `pdfedit` active.
   - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect? } }` upserts one image
     replacement, DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
     against the image model of the published revision: unknown ids, full-page (scan) and
-    rotated images are refused, the media must be JPEG/PNG, `rect` must lie (almost) on the page.
+    rotated images are refused, the media must be JPEG/PNG/WebP (WebP is converted to PNG when the PDF is updated), `rect` must lie (almost) on the page.
     It stores intent only; the PDF is not written yet (no writer in this stage).
   - `pdfedit-export` — GET `?id=&format=csv|json&delimiter=&bom=`,
     CSV via package `recordsToCsv`. Admin-only.
@@ -78,7 +78,7 @@ generated apps with module `pdfedit` active.
   Google Fonts (`googleFontsCssUrl`) and runs the PDF update bar through
   `pdfedit-pdf`; `PdfeditEditorLink` on the
   document links editor + exports.
-  Image editing: `usePdfeditMediaPicker.tsx` bridges Payload's media list drawer (JPEG/PNG only)
+  Image editing: `usePdfeditMediaPicker.tsx` bridges Payload's media list drawer (JPEG/PNG/WebP only)
   and the "create media" drawer to the package's `onPickImageFromMedia` / `onUploadImage`;
   `onImageEditSave` / `onImageEditReset` persist through `pdfedit-images` (optimistic, reload on error).
 

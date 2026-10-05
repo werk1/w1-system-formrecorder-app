@@ -22,7 +22,8 @@ export class ImageEditError extends Error {
 /** Largest overhang of the target box over the page (a replacement may bleed slightly). */
 const MARGIN = 0.25
 const MIN_SIDE = 0.005
-const IMAGE_MIME = new Set(['image/jpeg', 'image/png'])
+// The media collection converts uploads to WebP; the PDF update converts it to PNG for embedding.
+const IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 

@@ -5,8 +5,8 @@ import type { ReactNode } from 'react'
 import { useDocumentDrawer, useListDrawer } from '@payloadcms/ui'
 import type { W1PdfImagePick } from '@werk1/w1-system-pdfedit/types'
 
-/** Image types the PDF writer can embed (see `/api/pdfedit-images`). */
-const PLACEABLE_MIME = ['image/jpeg', 'image/png']
+/** Image types accepted by `/api/pdfedit-images` (WebP is converted when the PDF is updated). */
+const PLACEABLE_MIME = ['image/jpeg', 'image/png', 'image/webp']
 
 // Module-level on purpose: Payload's list drawer re-fetches whenever the
 // identity of `filterOptions` changes, so an inline object loops forever.
@@ -26,7 +26,7 @@ const toPick = (doc: { id?: unknown; filename?: unknown } | undefined): W1PdfIma
 
 /**
  * Bridges Payload's media drawers to the promise callbacks of the pdfedit
- * image editor: `pickFromMedia` opens the media list (JPEG/PNG only),
+ * image editor: `pickFromMedia` opens the media list (JPEG/PNG/WebP only),
  * `uploadMedia` the "create media" form. Both resolve with the chosen image,
  * or `null` when the drawer is closed without a choice. Render `drawers`
  * once inside the admin view.
@@ -70,8 +70,16 @@ export function usePdfeditMediaPicker(): {
         }}
       />
       <DocumentDrawer
-        onSave={({ doc, result }) => {
-          settle(toPick({ id: doc.id, filename: (result as { filename?: unknown }).filename }))
+        onSave={async ({ doc, result }) => {
+          // `result` is not always set; the saved document is the reliable source of the file name.
+          let filename = (result as { filename?: unknown } | undefined)?.filename
+          if (typeof filename !== 'string' || !filename) {
+            const saved = await fetch(`/api/media/${encodeURIComponent(String(doc.id))}?depth=0`, { credentials: 'same-origin' })
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+            filename = (saved as { filename?: unknown } | null)?.filename
+          }
+          settle(toPick({ id: doc.id, filename }))
           create.closeDrawer()
         }}
       />
