@@ -6,7 +6,10 @@ export type StoredImageEdit = {
   /** Flipbook revision whose image ids this edit references. */
   revision: string
   pageIndex: number
+  /** Replacement media; empty when the image is removed. */
   mediaId: string
+  /** The image is deleted from the PDF, not replaced. */
+  remove?: true
   rect: W1FormRect
 }
 
@@ -54,10 +57,11 @@ export function sanitizeRect(raw: unknown): W1FormRect {
 /** Builds the stored edit for an image of the current model; throws `ImageEditError` otherwise. */
 export function buildImageEdit(
   model: W1PdfImageModel,
-  input: { imageId?: unknown; mediaId?: unknown; rect?: unknown },
+  input: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown },
 ): StoredImageEdit {
   if (typeof input.imageId !== 'string' || !input.imageId) throw new ImageEditError('INVALID_REQUEST', 'imageId is required.')
-  if (input.mediaId === undefined || input.mediaId === null || input.mediaId === '') {
+  const remove = input.remove === true
+  if (!remove && (input.mediaId === undefined || input.mediaId === null || input.mediaId === '')) {
     throw new ImageEditError('INVALID_REQUEST', 'mediaId is required.')
   }
   const image = model.images.find((i) => i.id === input.imageId)
@@ -68,7 +72,8 @@ export function buildImageEdit(
     imageId: image.id,
     revision: model.revision,
     pageIndex: image.pageIndex,
-    mediaId: String(input.mediaId),
+    mediaId: remove ? '' : String(input.mediaId),
+    ...(remove ? { remove: true as const } : {}),
     rect: sanitizeRect(input.rect ?? image.rect),
   }
 }
@@ -80,8 +85,12 @@ export function currentImageEdits(raw: unknown, revision: string): StoredImageEd
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue
     const e = item as Partial<StoredImageEdit>
-    if (e.revision !== revision || typeof e.imageId !== 'string' || typeof e.pageIndex !== 'number') continue
-    if (e.mediaId === undefined || e.mediaId === null || !e.rect) continue
+    if (e.revision !== revision || typeof e.imageId !== 'string' || typeof e.pageIndex !== 'number' || !e.rect) continue
+    if (e.remove === true) {
+      out.push({ imageId: e.imageId, revision, pageIndex: e.pageIndex, mediaId: '', remove: true, rect: e.rect })
+      continue
+    }
+    if (e.mediaId === undefined || e.mediaId === null || e.mediaId === '') continue
     out.push({ imageId: e.imageId, revision, pageIndex: e.pageIndex, mediaId: String(e.mediaId), rect: e.rect })
   }
   return out

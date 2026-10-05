@@ -3,7 +3,7 @@ import path from 'path'
 import type { Payload } from 'payload'
 import { hasStyledSpans, spansText } from '@werk1/w1-system-pdfedit/export'
 import { applyImageEdits, applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
-import type { W1PdfFontProvider, W1PdfTextEdit } from '@werk1/w1-system-pdfedit/pdf'
+import type { W1PdfFontProvider, W1PdfImageReplacement, W1PdfTextEdit } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1FormTextBlock, W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { createJobDir, removeJobDir, renderPage } from '@/lib/flipbook/pdfConverter'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
@@ -16,7 +16,7 @@ export const PDFEDIT_GENERATOR = 'pdfedit'
 
 type IdLike = string | number
 
-export type PdfUpdateAction = { type: 'apply' } | { type: 'restore'; pageIndex: number }
+export type PdfUpdateAction = { type: 'apply' } | { type: 'restore'; pageIndex: number } | { type: 'restoreAll' }
 
 export type PdfUpdateResult = {
   /** Block ids whose text now lives in the PDF. */
@@ -108,11 +108,11 @@ export function collectEdits(model: W1FormTextModel, records: readonly W1PdfEdit
   return edits
 }
 
-/** Resets the record blocks on one page to their source text; returns the changed records. */
+/** Resets the record blocks on one page (all pages without `pageIndex`) to their source text; returns the changed records. */
 export function resetPageBlocks(
   model: W1FormTextModel,
   records: readonly W1PdfEditRecord[],
-  pageIndex: number,
+  pageIndex?: number,
 ): W1PdfEditRecord[] {
   const index = blockIndex(model)
   const changed: W1PdfEditRecord[] = []
@@ -120,7 +120,7 @@ export function resetPageBlocks(
     let touched = false
     const blocks = record.blocks.map((block) => {
       const source = index.get(block.blockId)
-      if (!source || source.pageIndex !== pageIndex || !(block.edited || block.text !== source.text || block.spans)) return block
+      if (!source || (pageIndex !== undefined && source.pageIndex !== pageIndex) || !(block.edited || block.text !== source.text || block.spans)) return block
       touched = true
       const { spans: _spans, ...plain } = block
       void _spans
@@ -189,8 +189,11 @@ export async function updatePdfedit(
     }))
 
     const resetRecordIds: string[] = []
-    if (action.type === 'restore') {
-      const changed = resetPageBlocks(model, records, action.pageIndex)
+    if (action.type === 'restore' || action.type === 'restoreAll') {
+      const changed =
+        action.type === 'restore'
+          ? resetPageBlocks(model, records, action.pageIndex)
+          : resetPageBlocks(model, records)
       for (const record of changed) {
         await payload.update({
           collection: 'pdfeditrecords' as never,
@@ -205,8 +208,9 @@ export async function updatePdfedit(
 
     // Image replacements of the current revision; a page restore drops those of that page.
     let imageEdits = currentImageEdits(doc.imageEdits, revision)
-    if (action.type === 'restore' && imageEdits.some((e) => e.pageIndex === action.pageIndex)) {
-      imageEdits = imageEdits.filter((e) => e.pageIndex !== action.pageIndex)
+    const droppedByRestore = (e: { pageIndex: number }) => action.type === 'restoreAll' || (action.type === 'restore' && e.pageIndex === action.pageIndex)
+    if (imageEdits.some(droppedByRestore)) {
+      imageEdits = imageEdits.filter((e) => !droppedByRestore(e))
       await payload.update({ collection: 'pdfedits' as never, id: doc.id, data: { imageEdits } as never, overrideAccess: true })
     }
 
@@ -228,8 +232,12 @@ export async function updatePdfedit(
 
     // Images first (they work on the original's paint operators), then the texts on top of that result.
     const skippedImages: PdfUpdateResult['skippedImages'] = []
-    const replacements = []
+    const replacements: W1PdfImageReplacement[] = []
     for (const edit of imageEdits) {
+      if (edit.remove) {
+        replacements.push({ imageId: edit.imageId, pageIndex: edit.pageIndex, rect: edit.rect, remove: true })
+        continue
+      }
       const loaded = await loadReplacement(payload, edit)
       if (loaded.ok) replacements.push(loaded.replacement)
       else skippedImages.push({ imageId: loaded.imageId, reason: loaded.reason })

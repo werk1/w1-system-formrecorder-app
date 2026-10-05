@@ -18,7 +18,10 @@ export const maxDuration = 300
  *   Resets the texts of one page to the original and updates the PDF — that
  *   page is the original again.
  *
- * Responds with `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds }`.
+ * POST { pdfeditId, action: 'restore-all' }
+ *   Resets all texts and image changes of the document: the PDF is the original again.
+ *
+ * Responds with `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds, appliedImages, skippedImages }`.
  */
 
 const unauthorized = () =>
@@ -45,7 +48,9 @@ export async function POST(request: NextRequest) {
   const invalid = (message: string) =>
     NextResponse.json({ error: { code: 'INVALID_REQUEST', message } }, { status: 400 })
   if (body?.pdfeditId === undefined || body.pdfeditId === null || body.pdfeditId === '') return invalid('pdfeditId is required.')
-  if (body.action !== 'apply' && body.action !== 'restore') return invalid("action must be 'apply' or 'restore'.")
+  if (body.action !== 'apply' && body.action !== 'restore' && body.action !== 'restore-all') {
+    return invalid("action must be 'apply', 'restore' or 'restore-all'.")
+  }
   if (body.action === 'restore' && !(Number.isInteger(body.pageIndex) && (body.pageIndex as number) >= 0)) {
     return invalid('pageIndex (0-based) is required for restore.')
   }
@@ -54,7 +59,11 @@ export async function POST(request: NextRequest) {
     const result = await updatePdfedit(
       payload,
       body.pdfeditId,
-      body.action === 'apply' ? { type: 'apply' } : { type: 'restore', pageIndex: body.pageIndex as number },
+      body.action === 'apply'
+        ? { type: 'apply' }
+        : body.action === 'restore-all'
+          ? { type: 'restoreAll' }
+          : { type: 'restore', pageIndex: body.pageIndex as number },
       { fontProvider: envFontProvider() },
     )
     return NextResponse.json(result)

@@ -31,11 +31,12 @@ generated apps with module `pdfedit` active.
   - `pdfedit-data` — GET `?id=` → the prepared `W1PdfEditInput`
     (page images via `/api/media/file/<name>`, text model, ordered records). Admin-only.
   - `pdfedit-records` — POST upsert / PATCH reorder / DELETE. Admin-only.
-  - `pdfedit-pdf` — POST `{ pdfeditId, action: 'apply' | 'restore', pageIndex? }`.
+  - `pdfedit-pdf` — POST `{ pdfeditId, action: 'apply' | 'restore' | 'restore-all', pageIndex? }`.
     Writes the edited record texts into the PDF with `applyTextEdits`
     (`@werk1/w1-system-pdfedit/pdf`), starting from the backed-up original,
     and re-renders the changed pages (`pdftoppm`).
-    `restore` first resets the texts of one page to the source. Admin-only. Responds with
+    `restore` first resets the texts of one page to the source; `restore-all` resets all texts and
+    image changes of the document (the PDF is the original again). Admin-only. Responds with
     `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds, appliedImages, skippedImages }`.
     Image replacements (`pdfedits.imageEdits`) are written first with `applyImageEdits`
     (`@werk1/w1-system-pdfedit/pdf`; media are read from the media storage, WebP is converted to PNG
@@ -44,7 +45,7 @@ generated apps with module `pdfedit` active.
     `skippedImages`. The editor starts the update automatically after a replacement is saved or reset,
     because the page preview is a raster and shows the change only after the PDF was rewritten.
   - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect? } }` upserts one image
-    replacement, DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
+    replacement (`edit: { imageId, remove: true }` deletes the image from the PDF instead, no media), DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
     against the image model of the published revision: unknown ids, full-page (scan) and
     rotated images are refused, the media must be JPEG/PNG/WebP (WebP is converted to PNG when the PDF is updated), `rect` must lie (almost) on the page.
     It stores intent only; the PDF is written by `pdfedit-pdf`.

@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
   )
   const imageModel = await ensureImageModel(payload, flipbook)
   const storedImageEdits = imageModel ? currentImageEdits(doc.imageEdits, imageModel.revision) : []
-  mediaIds.push(...storedImageEdits.map((e) => e.mediaId))
+  mediaIds.push(...storedImageEdits.filter((e) => !e.remove).map((e) => e.mediaId))
   const media = await loadMediaMap(payload, mediaIds)
 
   const pages = flipbook.pages
@@ -172,7 +172,8 @@ export async function GET(request: NextRequest) {
       alt: `${pages[index].alt} (aktualisiert)`,
     }
   }
-  const imageEdits: W1PdfImageEdit[] = storedImageEdits.flatMap((e) => {
+  const imageEdits: W1PdfImageEdit[] = storedImageEdits.flatMap<W1PdfImageEdit>((e) => {
+    if (e.remove) return [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: '', remove: true as const, rect: e.rect }]
     const mediaUrl = mediaFileUrl(media.get(e.mediaId)?.filename)
     // A deleted replacement media drops out of the editor (the writer skips it too).
     return mediaUrl ? [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: e.mediaId, mediaUrl, rect: e.rect }] : []

@@ -21,6 +21,7 @@ export const runtime = 'nodejs'
  *
  * POST   { pdfeditId, edit: { imageId, mediaId, rect? } } → upsert; returns the stored edit.
  *        `rect` defaults to the image's current box.
+ *        `{ imageId, remove: true }` deletes the image from the PDF instead (no media).
  * DELETE { pdfeditId, imageId } → back to the original image.
  */
 
@@ -38,7 +39,7 @@ async function authenticateAdmin(payload: Payload, request: NextRequest): Promis
 
 type Body = {
   pdfeditId?: string | number
-  edit?: { imageId?: unknown; mediaId?: unknown; rect?: unknown }
+  edit?: { imageId?: unknown; mediaId?: unknown; remove?: unknown; rect?: unknown }
   imageId?: unknown
 }
 
@@ -77,11 +78,13 @@ export async function POST(request: NextRequest) {
   if ('error' in ctx) return ctx.error
   try {
     const edit = buildImageEdit(ctx.model, body.edit)
-    const media = (await payload
-      .findByID({ collection: 'media', id: edit.mediaId, depth: 0, overrideAccess: true })
-      .catch(() => null)) as { mimeType?: unknown } | null
-    if (!media) throw new ImageEditError('BAD_MEDIA', 'Media not found.')
-    if (!imageMimeAllowed(media.mimeType)) throw new ImageEditError('BAD_MEDIA', 'Only JPEG, PNG and WebP images can be placed in a PDF.')
+    if (!edit.remove) {
+      const media = (await payload
+        .findByID({ collection: 'media', id: edit.mediaId, depth: 0, overrideAccess: true })
+        .catch(() => null)) as { mimeType?: unknown } | null
+      if (!media) throw new ImageEditError('BAD_MEDIA', 'Media not found.')
+      if (!imageMimeAllowed(media.mimeType)) throw new ImageEditError('BAD_MEDIA', 'Only JPEG, PNG and WebP images can be placed in a PDF.')
+    }
     const next = upsertImageEdit(currentImageEdits(ctx.doc.imageEdits, ctx.model.revision), edit)
     await payload.update({
       collection: 'pdfedits' as never,

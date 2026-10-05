@@ -65,6 +65,8 @@ const LABELS: W1PdfEditLabels = {
   autoMergeNone: 'Keine getrennten Absätze gefunden',
   restorePage: 'Seite auf Original zurücksetzen',
   restoreConfirm: (page) => `Seite ${page} auf das Original zurücksetzen? Alle bearbeiteten Texte dieser Seite gehen verloren (im PDF und in den Datensätzen). Das macht keinen einzelnen Schritt rückgängig.`,
+  restorePdf: 'Original-PDF wiederherstellen',
+  restorePdfConfirm: 'Das gesamte PDF auf das Original zurücksetzen? Alle bearbeiteten Texte und ersetzten oder entfernten Bilder im ganzen Dokument gehen verloren (im PDF und in den Datensätzen). Das macht keinen einzelnen Schritt rückgängig.',
   previewOriginal: 'Vorschau: Original',
   previewEdited: 'Vorschau: Bearbeitet',
   downloadEdited: 'Bearbeitetes PDF',
@@ -80,6 +82,9 @@ const LABELS: W1PdfEditLabels = {
   imageUpload: 'In Medien hochladen',
   imageAdjust: 'Verschieben / Skalieren',
   imageReset: 'Original wiederherstellen',
+  imageRemove: 'Bild entfernen',
+  imageRemoved: 'Bild entfernt',
+  imageStack: (index, count) => `Bild ${index} von ${count} an dieser Stelle`,
   imageOk: 'OK',
   imageCancel: 'Abbrechen',
   imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: ersetzt wird nur diese Stelle, die anderen bleiben unverändert.',
@@ -148,7 +153,7 @@ export function PdfeditEditor() {
 
   /** Writes the edited texts into the PDF (apply) or restores one page. */
   const runPdfUpdate = useCallback(
-    async (body: { action: 'apply' } | { action: 'restore'; pageIndex: number }) => {
+    async (body: { action: 'apply' } | { action: 'restore'; pageIndex: number } | { action: 'restore-all' }) => {
       if (!docId) return
       setPdfBusy(true)
       setStatus(LABELS.applyPdfBusy ?? '')
@@ -163,7 +168,11 @@ export function PdfeditEditor() {
         }
         await loadInput(docId)
         const parts = [
-          body.action === 'restore' ? `Seite ${body.pageIndex + 1} wiederhergestellt` : `PDF aktualisiert: ${result.applied.length} Text(e)`,
+          body.action === 'restore'
+            ? `Seite ${body.pageIndex + 1} wiederhergestellt`
+            : body.action === 'restore-all'
+              ? 'Original-PDF wiederhergestellt'
+              : `PDF aktualisiert: ${result.applied.length} Text(e)`,
           result.editedPageIndexes.length ? `Seiten: ${result.editedPageIndexes.map((i) => i + 1).join(', ')}` : '',
           result.skipped.length ? `${result.skipped.length} nicht ersetzbar (Text im Formular-Objekt, gedreht oder nicht gefunden)` : '',
           result.appliedImages?.length ? `${result.appliedImages.length} Bild(er) ersetzt` : '',
@@ -390,6 +399,7 @@ export function PdfeditEditor() {
         onAutoMerge={(pageIndex) => void editBlocks({ op: 'auto', pageIndex })}
         onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
         onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
+        onRestorePdf={() => void runPdfUpdate({ action: 'restore-all' })}
         onPickImageFromMedia={pickFromMedia}
         onUploadImage={uploadMedia}
         onImageEditSave={onImageEditSave}
