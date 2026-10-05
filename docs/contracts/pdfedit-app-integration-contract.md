@@ -35,14 +35,14 @@ generated apps with module `pdfedit` active.
     Writes the edited record texts into the PDF with `applyTextEdits`
     (`@werk1/w1-system-pdfedit/pdf`), starting from the backed-up original,
     and re-renders the changed pages (`pdftoppm`).
+    `restore` first resets the texts of one page to the source. Admin-only. Responds with
+    `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds, appliedImages, skippedImages }`.
     Image replacements (`pdfedits.imageEdits`) are written first with `applyImageEdits`
     (`@werk1/w1-system-pdfedit/pdf`; media are read from the media storage, WebP is converted to PNG
     with `sharp` in `src/lib/pdfedit/imageFiles.ts`), the texts on top of that result. A `restore` of a
     page also drops its image edits. The response additionally carries `appliedImages` and
     `skippedImages`. The editor starts the update automatically after a replacement is saved or reset,
-    because the page preview is a raster and shows the change only after the PDF was rewritten. `restore` first resets the
-    texts of one page to the source. Admin-only. Responds with
-    `{ applied, skipped, warnings, editedPageIndexes, resetRecordIds }`.
+    because the page preview is a raster and shows the change only after the PDF was rewritten.
   - `pdfedit-images` — POST `{ pdfeditId, edit: { imageId, mediaId, rect? } }` upserts one image
     replacement, DELETE `{ pdfeditId, imageId }` restores the original. Admin-only. Validates
     against the image model of the published revision: unknown ids, full-page (scan) and
