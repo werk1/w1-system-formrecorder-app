@@ -82,7 +82,7 @@ const LABELS: W1PdfEditLabels = {
   imageReset: 'Original wiederherstellen',
   imageOk: 'OK',
   imageCancel: 'Abbrechen',
-  imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: das Ersetzen ändert alle Stellen.',
+  imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: ersetzt wird nur diese Stelle, die anderen bleiben unverändert.',
   imageLockHint: 'Ziehen: verschieben · Ecken ziehen: skalieren (Umschalt: Seitenverhältnis frei) · Pfeiltasten: feinjustieren',
 }
 
@@ -158,12 +158,16 @@ export function PdfeditEditor() {
           skipped: Array<{ blockId: string; reason: string }>
           warnings: string[]
           editedPageIndexes: number[]
+          appliedImages?: string[]
+          skippedImages?: Array<{ imageId: string; reason: string }>
         }
         await loadInput(docId)
         const parts = [
           body.action === 'restore' ? `Seite ${body.pageIndex + 1} wiederhergestellt` : `PDF aktualisiert: ${result.applied.length} Text(e)`,
           result.editedPageIndexes.length ? `Seiten: ${result.editedPageIndexes.map((i) => i + 1).join(', ')}` : '',
           result.skipped.length ? `${result.skipped.length} nicht ersetzbar (Text im Formular-Objekt, gedreht oder nicht gefunden)` : '',
+          result.appliedImages?.length ? `${result.appliedImages.length} Bild(er) ersetzt` : '',
+          result.skippedImages?.length ? `${result.skippedImages.length} Bild(er) nicht ersetzbar (${result.skippedImages.map((s) => s.reason).join(', ')})` : '',
           ...result.warnings,
         ].filter(Boolean)
         setStatus(parts.join(' · '))
@@ -289,13 +293,14 @@ export function PdfeditEditor() {
         pdfeditId: docId,
         edit: { imageId: edit.imageId, mediaId: edit.mediaId, rect: edit.rect },
       })
-        .then(() => setStatus(LABELS.recordSaved))
+        // The page preview is a raster: the replacement only shows up for real once the PDF is written.
+        .then(() => runPdfUpdate({ action: 'apply' }))
         .catch((e: Error) => {
           setStatus(`Fehler: ${e.message}`)
           void loadInput(docId).catch(() => undefined)
         })
     },
-    [docId, loadInput],
+    [docId, loadInput, runPdfUpdate],
   )
 
   const onImageEditReset = useCallback(
@@ -304,12 +309,14 @@ export function PdfeditEditor() {
       setInput((current) =>
         current ? { ...current, imageEdits: (current.imageEdits ?? []).filter((e) => e.imageId !== imageId) } : current,
       )
-      void postJson('/api/pdfedit-images', 'DELETE', { pdfeditId: docId, imageId }).catch((e: Error) => {
-        setStatus(`Fehler: ${e.message}`)
-        void loadInput(docId).catch(() => undefined)
-      })
+      void postJson('/api/pdfedit-images', 'DELETE', { pdfeditId: docId, imageId })
+        .then(() => runPdfUpdate({ action: 'apply' }))
+        .catch((e: Error) => {
+          setStatus(`Fehler: ${e.message}`)
+          void loadInput(docId).catch(() => undefined)
+        })
     },
-    [docId, loadInput],
+    [docId, loadInput, runPdfUpdate],
   )
 
   const exportCsv = useMemo(

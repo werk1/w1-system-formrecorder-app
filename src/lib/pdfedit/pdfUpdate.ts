@@ -2,13 +2,15 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import type { Payload } from 'payload'
 import { hasStyledSpans, spansText } from '@werk1/w1-system-pdfedit/export'
-import { applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
+import { applyImageEdits, applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1PdfFontProvider, W1PdfTextEdit } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1FormTextBlock, W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { createJobDir, removeJobDir, renderPage } from '@/lib/flipbook/pdfConverter'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 import { createGoogleFontProvider } from './googleFonts'
+import { currentImageEdits } from './imageEdits'
+import { loadReplacement } from './imageFiles'
 
 export const PDFEDIT_GENERATOR = 'pdfedit'
 
@@ -25,6 +27,9 @@ export type PdfUpdateResult = {
   editedPageIndexes: number[]
   /** Records that were reset by a page restore. */
   resetRecordIds: string[]
+  /** Image ids whose replacement now lives in the PDF. */
+  appliedImages: string[]
+  skippedImages: Array<{ imageId: string; reason: string }>
 }
 
 export class PdfUpdateError extends Error {
@@ -43,6 +48,7 @@ type PdfeditDoc = {
   originalPdf?: unknown
   editedPdf?: unknown
   editedPages?: Array<{ image?: unknown }> | null
+  imageEdits?: unknown
 }
 type FlipbookDoc = {
   id: IdLike
@@ -197,6 +203,13 @@ export async function updatePdfedit(
       records = records.map((r) => changed.find((c) => c.id === r.id) ?? r)
     }
 
+    // Image replacements of the current revision; a page restore drops those of that page.
+    let imageEdits = currentImageEdits(doc.imageEdits, revision)
+    if (action.type === 'restore' && imageEdits.some((e) => e.pageIndex === action.pageIndex)) {
+      imageEdits = imageEdits.filter((e) => e.pageIndex !== action.pageIndex)
+      await payload.update({ collection: 'pdfedits' as never, id: doc.id, data: { imageEdits } as never, overrideAccess: true })
+    }
+
     // The flipbook source file is the pristine original; keep a backup copy once.
     const source = await readMedia(payload, sourceId)
     if (typeof source.filename !== 'string' || !source.filename) throw new PdfUpdateError('FAILED', 'Die Quell-PDF-Datei fehlt.')
@@ -213,10 +226,28 @@ export async function updatePdfedit(
     const backup = await readMedia(payload, originalBackupId)
     const original = await fs.readFile(path.join(mediaDir(payload), String(backup.filename)))
 
+    // Images first (they work on the original's paint operators), then the texts on top of that result.
+    const skippedImages: PdfUpdateResult['skippedImages'] = []
+    const replacements = []
+    for (const edit of imageEdits) {
+      const loaded = await loadReplacement(payload, edit)
+      if (loaded.ok) replacements.push(loaded.replacement)
+      else skippedImages.push({ imageId: loaded.imageId, reason: loaded.reason })
+    }
+    const imageResult = replacements.length
+      ? await applyImageEdits(new Uint8Array(original), replacements)
+      : { bytes: new Uint8Array(original), applied: [] as string[], skipped: [], warnings: [] as string[] }
+    skippedImages.push(...imageResult.skipped.map((s) => ({ imageId: s.imageId, reason: s.reason })))
+    const appliedImageSet = new Set(imageResult.applied)
+    const imagePages = replacements.filter((r) => appliedImageSet.has(r.imageId)).map((r) => r.pageIndex)
+
     const edits = collectEdits(model, records)
-    const result = await applyTextEdits(new Uint8Array(original), edits, { fontProvider: options.fontProvider })
+    const result = await applyTextEdits(imageResult.bytes, edits, { fontProvider: options.fontProvider })
+    result.warnings.unshift(...imageResult.warnings)
     const appliedSet = new Set(result.applied)
-    const editedPageIndexes = [...new Set(edits.filter((e) => appliedSet.has(e.blockId)).map((e) => e.pageIndex))].sort((a, b) => a - b)
+    const editedPageIndexes = [
+      ...new Set([...edits.filter((e) => appliedSet.has(e.blockId)).map((e) => e.pageIndex), ...imagePages]),
+    ].sort((a, b) => a - b)
 
     // Previous generated edited files are replaced after the new ones exist.
     const previousIds: IdLike[] = [
@@ -292,6 +323,8 @@ export async function updatePdfedit(
       warnings: result.warnings,
       editedPageIndexes,
       resetRecordIds,
+      appliedImages: imageResult.applied,
+      skippedImages,
     }
   } catch (error) {
     await deleteMediaByIds(payload, createdIds)
