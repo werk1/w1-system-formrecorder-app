@@ -8,7 +8,9 @@ import type {
   W1PdfEditRecordBlock,
   W1PdfEditInput,
   W1PdfEditLabels,
+  W1PdfImageEdit,
 } from '@werk1/w1-system-pdfedit/types'
+import { usePdfeditMediaPicker } from './usePdfeditMediaPicker'
 
 /**
  * Payload admin view `/admin/pdfedit`: the pdfedit overlay editor.
@@ -73,6 +75,15 @@ const LABELS: W1PdfEditLabels = {
   addAllToRecord: (n) => `Alle freien Blöcke dieser Seite zum Datensatz hinzufügen (${n})`,
   newRecordFromSelection: 'Neuer Datensatz aus Auswahl',
   clearSelection: 'Auswahl aufheben',
+  imageEdit: 'Bild bearbeiten',
+  imageFromMedia: 'Aus Medien wählen',
+  imageUpload: 'In Medien hochladen',
+  imageAdjust: 'Verschieben / Skalieren',
+  imageReset: 'Original wiederherstellen',
+  imageOk: 'OK',
+  imageCancel: 'Abbrechen',
+  imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: das Ersetzen ändert alle Stellen.',
+  imageLockHint: 'Ziehen: verschieben · Ecken ziehen: skalieren (Umschalt: Seitenverhältnis frei) · Pfeiltasten: feinjustieren',
 }
 
 async function postJson(url: string, method: string, body: unknown): Promise<Record<string, unknown>> {
@@ -98,6 +109,7 @@ export function PdfeditEditor() {
   const [error, setError] = useState<string>('')
   const [activeId, setActiveId] = useState('')
   const [pdfBusy, setPdfBusy] = useState(false)
+  const { pickFromMedia, uploadMedia, drawers } = usePdfeditMediaPicker()
 
   useEffect(() => {
     void fetch('/api/pdfedits?limit=100&depth=0&sort=title', { credentials: 'same-origin' })
@@ -266,6 +278,40 @@ export function PdfeditEditor() {
     [docId, input],
   )
 
+  /** Stores an image replacement (optimistic), reloads the input when the server refuses it. */
+  const onImageEditSave = useCallback(
+    (edit: W1PdfImageEdit) => {
+      if (!docId) return
+      setInput((current) =>
+        current ? { ...current, imageEdits: [...(current.imageEdits ?? []).filter((e) => e.imageId !== edit.imageId), edit] } : current,
+      )
+      void postJson('/api/pdfedit-images', 'POST', {
+        pdfeditId: docId,
+        edit: { imageId: edit.imageId, mediaId: edit.mediaId, rect: edit.rect },
+      })
+        .then(() => setStatus(LABELS.recordSaved))
+        .catch((e: Error) => {
+          setStatus(`Fehler: ${e.message}`)
+          void loadInput(docId).catch(() => undefined)
+        })
+    },
+    [docId, loadInput],
+  )
+
+  const onImageEditReset = useCallback(
+    (imageId: string) => {
+      if (!docId) return
+      setInput((current) =>
+        current ? { ...current, imageEdits: (current.imageEdits ?? []).filter((e) => e.imageId !== imageId) } : current,
+      )
+      void postJson('/api/pdfedit-images', 'DELETE', { pdfeditId: docId, imageId }).catch((e: Error) => {
+        setStatus(`Fehler: ${e.message}`)
+        void loadInput(docId).catch(() => undefined)
+      })
+    },
+    [docId, loadInput],
+  )
+
   const exportCsv = useMemo(
     () => (docId ? `/api/pdfedit-export?id=${encodeURIComponent(docId)}&format=csv` : '#'),
     [docId],
@@ -337,10 +383,15 @@ export function PdfeditEditor() {
         onAutoMerge={(pageIndex) => void editBlocks({ op: 'auto', pageIndex })}
         onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
         onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
+        onPickImageFromMedia={pickFromMedia}
+        onUploadImage={uploadMedia}
+        onImageEditSave={onImageEditSave}
+        onImageEditReset={onImageEditReset}
         pdfBusy={pdfBusy}
         status={<span>{status}</span>}
       />
       </div>
+      {drawers}
     </div>
   )
 }

@@ -78,6 +78,9 @@ generated apps with module `pdfedit` active.
   Google Fonts (`googleFontsCssUrl`) and runs the PDF update bar through
   `pdfedit-pdf`; `PdfeditEditorLink` on the
   document links editor + exports.
+  Image editing: `usePdfeditMediaPicker.tsx` bridges Payload's media list drawer (JPEG/PNG only)
+  and the "create media" drawer to the package's `onPickImageFromMedia` / `onUploadImage`;
+  `onImageEditSave` / `onImageEditReset` persist through `pdfedit-images` (optimistic, reload on error).
 
 ## Generated App Wiring
 
