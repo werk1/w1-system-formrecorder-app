@@ -300,7 +300,7 @@ export function PdfeditEditor() {
       )
       void postJson('/api/pdfedit-images', 'POST', {
         pdfeditId: docId,
-        edit: { imageId: edit.imageId, mediaId: edit.mediaId, rect: edit.rect },
+        edit: { imageId: edit.imageId, mediaId: edit.mediaId, rect: edit.rect, ...(edit.remove ? { remove: true } : {}) },
       })
         // The page preview is a raster: the replacement only shows up for real once the PDF is written.
         .then(() => runPdfUpdate({ action: 'apply' }))
