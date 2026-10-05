@@ -70,6 +70,10 @@ export function usePdfeditMediaPicker(): {
         }}
       />
       <DocumentDrawer
+        // Stay in the editor: by default Payload navigates to the new media page after creating it.
+        redirectAfterCreate={false}
+        redirectAfterDuplicate={false}
+        redirectAfterDelete={false}
         onSave={async ({ doc, result }) => {
           // `result` is not always set; the saved document is the reliable source of the file name.
           let filename = (result as { filename?: unknown } | undefined)?.filename
