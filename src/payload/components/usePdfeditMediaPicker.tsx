@@ -8,6 +8,15 @@ import type { W1PdfImagePick } from '@werk1/w1-system-pdfedit/types'
 /** Image types the PDF writer can embed (see `/api/pdfedit-images`). */
 const PLACEABLE_MIME = ['image/jpeg', 'image/png']
 
+// Module-level on purpose: Payload's list drawer re-fetches whenever the
+// identity of `filterOptions` changes, so an inline object loops forever.
+const LIST_DRAWER_ARGS: Parameters<typeof useListDrawer>[0] = {
+  collectionSlugs: ['media'],
+  selectedCollection: 'media',
+  uploads: true,
+  filterOptions: { media: { mimeType: { in: PLACEABLE_MIME } } },
+}
+
 type Resolver = (pick: W1PdfImagePick | null) => void
 
 const toPick = (doc: { id?: unknown; filename?: unknown } | undefined): W1PdfImagePick | null =>
@@ -34,12 +43,7 @@ export function usePdfeditMediaPicker(): {
     resolve?.(pick)
   }, [])
 
-  const [ListDrawer, , list] = useListDrawer({
-    collectionSlugs: ['media'],
-    selectedCollection: 'media',
-    uploads: true,
-    filterOptions: { media: { mimeType: { in: PLACEABLE_MIME } } },
-  })
+  const [ListDrawer, , list] = useListDrawer(LIST_DRAWER_ARGS)
   const [DocumentDrawer, , create] = useDocumentDrawer({ collectionSlug: 'media' })
 
   // Closing a drawer without a choice resolves the pending promise with null.
