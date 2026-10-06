@@ -53,6 +53,7 @@ const LABELS: W1PdfEditLabels = {
   blockTextLabel: 'Text',
   removeBlock: 'Block entfernen',
   editTexts: 'Texte bearbeiten',
+  hideTexts: 'Texte ausblenden',
   charLimit: (max) => `Max. ${max} Zeichen`,
   charOverflow: (max) => `Mehr als ${max} Zeichen: der Rest wird beim Aktualisieren des PDFs abgeschnitten`,
   applyPdf: 'PDF aktualisieren',
