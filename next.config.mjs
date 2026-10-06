@@ -95,6 +95,15 @@ const nextConfig = {
       './node_modules/unicode-trie/**/*',
       './node_modules/tiny-inflate/**/*',
       './node_modules/base64-js/**/*',
+      // Server-side PDF extraction (@werk1/w1-system-flipbook/pdf/server) imports
+      // pdfjs-dist via `webpackIgnore`, which the tracer cannot see.
+      './node_modules/pdfjs-dist/legacy/build/**/*',
+      './node_modules/pdfjs-dist/package.json',
+      // pdfjs-dist loads @napi-rs/canvas (+ its per-platform native binary) via a
+      // dynamic require the tracer cannot see; without it ImageData/Path2D are
+      // not polyfilled on the server.
+      './node_modules/@napi-rs/canvas/**/*',
+      './node_modules/@napi-rs/canvas-*/**/*',
     ],
   },
   transpilePackages: [
@@ -127,7 +136,10 @@ const nextConfig = {
       },
     ]
   },
-  serverExternalPackages: ['@werk1/w1-system-font-manager', 'woff2-encode-wasm'],
+  // pdf-lib (manifest chunking) runs as a plain Node module. pdfjs-dist must NOT
+  // be listed: the reader's browser loader bundles it, and the server-side
+  // extraction imports it natively via `webpackIgnore`.
+  serverExternalPackages: ['@werk1/w1-system-font-manager', 'woff2-encode-wasm', 'pdf-lib'],
   webpack(config) {
     config.experiments = {
       ...(config.experiments ?? {}),

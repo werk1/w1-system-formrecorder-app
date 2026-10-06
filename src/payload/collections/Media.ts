@@ -259,6 +259,7 @@ export const Media: CollectionConfig = {
       "audio/aac",
       "audio/flac",
       "application/pdf",
+      "application/json",
     ],
     formatOptions: { format: "webp", options: { quality: 80 } },
     filenameCompoundIndex: ["filename", "importSlug"],

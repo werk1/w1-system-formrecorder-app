@@ -8,6 +8,7 @@ import { ensureTextStyles } from '@/lib/pdfedit/textStyles'
 import { ensureImageModel } from '@/lib/pdfedit/imageModel'
 import { currentImageEdits } from '@werk1/w1-system-pdfedit/host'
 import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
+import { ensureReadManifest } from '@/lib/pdfedit/readManifest'
 
 export const runtime = 'nodejs'
 
@@ -38,6 +39,9 @@ type PdfeditDoc = {
   editedPages?: Array<{ pageIndex?: unknown; image?: unknown; width?: unknown; height?: unknown }> | null
   editedRevision?: unknown
   imageEdits?: unknown
+  manifestUrl?: unknown
+  manifestPdf?: unknown
+  manifestMedia?: unknown
 }
 type PdfeditrecordDoc = {
   id: string | number
@@ -170,6 +174,12 @@ export async function GET(request: NextRequest) {
       : []
   })
   const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
+  // Text layer and links of the PDF the reader shows (non-fatal when missing).
+  const manifestUrl = await ensureReadManifest(payload, doc, {
+    readPdfId: editedPdfId ? String(editedPdfId) : relationId(flipbook.publishedSourcePdf),
+    revision: String(flipbook.publishedRevision),
+    pageLabels: flipbook.pages.map((p) => (typeof p.label === 'string' ? p.label : '')),
+  })
 
   return NextResponse.json({
     input: {
@@ -182,6 +192,7 @@ export async function GET(request: NextRequest) {
       ...(imageModel ? { imageModel, imageEdits } : {}),
       ...(editedPages.some(Boolean) ? { editedPages } : {}),
       ...(editedPdfUrl ? { editedPdfUrl } : {}),
+      ...(manifestUrl ? { manifestUrl } : {}),
     },
     revision: flipbook.publishedRevision,
   })

@@ -62,7 +62,18 @@ const LABELS: W1PdfEditLabels = {
   dropStylesHint: 'Achtung: Stile gehen verloren, wenn der Text hier im Panel geändert wird. Zum Behalten den Text direkt über dem PDF bearbeiten.',
   dropStylesConfirm: 'Wenn du den Text hier änderst, gehen die Stile dieses Blocks verloren (fett, Farbe usw.). Zum Behalten den Text über dem PDF bearbeiten. Trotzdem ändern?',
   styleReset: 'Blockstil',
+  frameMove: 'Textrahmen verschieben',
+  frameReset: 'Zurück zum ursprünglichen Rahmen',
+  fontUnknown: 'Keine Schriftinformation im PDF: Text in Standarddarstellung.',
+  fontMissing: (family) => `Schrift „${family}“ ist hier nicht verfügbar: Ersatzschrift.`,
+  pagesStatus: (first, last, count) => `Seiten ${first}–${last} / ${count}`,
+  viewDouble: 'Doppelseite',
+  viewSingle: 'Einzelseite',
+  mergeStart: 'Blöcke verbinden',
   mergeBlocks: (count) => `Blöcke verbinden (${count})`,
+  mergeCancel: 'Abbrechen',
+  mergeBlockedByRecord: (name) => `Dieser Block gehört zum Datensatz „${name}“. Blöcke lassen sich nur verbinden, wenn sie keinem Datensatz angehören.`,
+  mergeHint: 'Blöcke auswählen, dann erneut „Blöcke verbinden“ klicken. Blöcke, die einem Datensatz zugeordnet sind, lassen sich nicht verbinden.',
   splitBlock: 'Verbundenen Block trennen',
   splitHint: 'Verbundener Block: „Trennen“ stellt die Ursprungsblöcke wieder her.',
   splitBlockedByRecord: (name) => `Dieser verbundene Block gehört zum Datensatz „${name}“ und lässt sich nicht trennen. Zuerst aus dem Datensatz entfernen.`,
@@ -93,10 +104,10 @@ const LABELS: W1PdfEditLabels = {
   imageOk: 'OK',
   imageCancel: 'Abbrechen',
   imageSharedWarning: 'Dieses Bild kommt mehrfach im PDF vor: ersetzt wird nur diese Stelle, die anderen bleiben unverändert.',
-  imageLockHint: 'Bild ziehen: im Container verschieben · Mausrad / Regler: zoomen · Ecken: Containergröße (Umschalt: Seitenverhältnis frei) · ✥: Container verschieben · Pfeiltasten: Bild, Alt+Pfeiltasten: Container',
+  imageLockHint: 'Bild ziehen: im Rahmen verschieben · Mausrad / Regler: zoomen (um den Mauszeiger) · Ecken: Rahmengröße · ✥: Rahmen verschieben · Pfeiltasten: Bild, Alt+Pfeiltasten: Rahmen',
+  imageMoveContainer: 'Rahmen verschieben',
   imageZoom: 'Zoom',
   imageFit: 'Einpassen',
-  imageMoveContainer: 'Container verschieben',
 }
 
 async function postJson(url: string, method: string, body: unknown): Promise<Record<string, unknown>> {
@@ -123,8 +134,9 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
 
   const loadInput = useCallback(async (id: string) => {
     const r = await fetch(`/api/pdfedit-data?id=${encodeURIComponent(id)}`, { credentials: 'same-origin' })
-    const data = await r.json()
-    if (!r.ok) throw new Error(data?.error?.message ?? `HTTP ${r.status}`)
+    // An empty or broken body (the server restarting) is reported as such, not as a JSON syntax error.
+    const data = await r.json().catch(() => null)
+    if (!r.ok || !data) throw new Error(data?.error?.message ?? `Der Server hat nicht geantwortet (HTTP ${r.status}). Bitte neu laden.`)
     setInput(data.input as W1PdfEditInput)
   }, [])
 
@@ -365,7 +377,7 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
         onRecordSave={onRecordSave}
         onMergeBlocks={(blockIds) => void editBlocks({ op: 'merge', blockIds })}
         onSplitBlock={(blockId) => void editBlocks({ op: 'split', blockId })}
-        onAutoMerge={(pageIndex) => void editBlocks({ op: 'auto', pageIndex })}
+        onAutoMerge={(pageIndex) => editBlocks({ op: 'auto', pageIndex })}
         onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
         onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
         onRestorePdf={() => void runPdfUpdate({ action: 'restore-all' })}

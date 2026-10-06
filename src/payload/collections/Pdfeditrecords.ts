@@ -6,7 +6,7 @@ const adminOnly: Access = ({ req: { user } }) =>
 /**
  * Captured records of a pdfedit document: one doc per entry (e.g. a
  * hotel listing). `blocks` is the ordered list of assigned text blocks
- * `{ blockId, name?, text, edited?, spans? }` defined by
+ * `{ blockId, name?, text, edited?, spans?, rect? }` defined by
  * `@werk1/w1-system-pdfedit`. `order` is the explicit export order.
  */
 export const Pdfeditrecords: CollectionConfig = {
@@ -60,7 +60,7 @@ export const Pdfeditrecords: CollectionConfig = {
       type: "json",
       admin: {
         description:
-          'Zugewiesene Textblöcke: [{ "blockId": string, "name"?: string, "text": string, "edited"?: boolean, "spans"?: [{ "text": string, "style"?: { "fontFamily"?, "bold"?, "italic"?, "color"? } }] }]',
+          'Zugewiesene Textblöcke: [{ "blockId": string, "name"?: string, "text": string, "edited"?: boolean, "rect"?: { "x", "y", "w", "h" } (eigener Rahmen, normiert auf die Seite), "spans"?: [{ "text": string, "style"?: { "fontFamily"?, "bold"?, "italic"?, "color"? } }] }]',
       },
     },
   ],

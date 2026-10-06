@@ -98,6 +98,30 @@ export const Pdfedits: CollectionConfig = {
       },
     },
     {
+      // PDF.js manifest of the PDF the reader shows (text layer, links). Built
+      // lazily by `ensureReadManifest`; rebuilt when that PDF changes.
+      name: "manifestUrl",
+      type: "text",
+      admin: { readOnly: true, position: "sidebar" },
+      access: { update: () => false },
+    },
+    {
+      name: "manifestPdf",
+      type: "text",
+      admin: {
+        readOnly: true,
+        position: "sidebar",
+        description: "Media-ID der PDF, aus der das Manifest gebaut wurde.",
+      },
+      access: { update: () => false },
+    },
+    {
+      name: "manifestMedia",
+      type: "json",
+      admin: { readOnly: true, position: "sidebar", description: "Media-IDs von Manifest und PDF-Teilen." },
+      access: { update: () => false },
+    },
+    {
       type: "collapsible",
       label: { de: "Aktualisiertes PDF", en: "Updated PDF" },
       admin: {
