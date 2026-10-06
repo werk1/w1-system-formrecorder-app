@@ -11,7 +11,6 @@ export const runtime = 'nodejs'
  * Text block merging for the pdfedit editor. Admin-only.
  *
  * POST { pdfeditId, op: 'merge', blockIds } | { pdfeditId, op: 'split', blockId }
- *    | { pdfeditId, op: 'auto', pageIndex }
  *    → { changed } — the number of merged or split groups.
  */
 export async function POST(request: NextRequest) {
@@ -23,8 +22,7 @@ export async function POST(request: NextRequest) {
   const valid =
     body?.pdfeditId !== undefined &&
     ((body.op === 'merge' && Array.isArray(body.blockIds) && body.blockIds.every((id) => typeof id === 'string')) ||
-      (body.op === 'split' && typeof body.blockId === 'string') ||
-      (body.op === 'auto' && typeof body.pageIndex === 'number'))
+      (body.op === 'split' && typeof body.blockId === 'string'))
   if (!body || !valid) {
     return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'pdfeditId and a valid op are required.' } }, { status: 400 })
   }

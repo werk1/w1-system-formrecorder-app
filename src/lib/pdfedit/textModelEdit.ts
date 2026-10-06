@@ -1,12 +1,11 @@
 import type { Payload } from 'payload'
-import { blockOwners, mergeTextBlocks, splitTextBlock, suggestMerges } from '@werk1/w1-system-pdfedit/export'
+import { blockOwners, mergeTextBlocks, splitTextBlock } from '@werk1/w1-system-pdfedit/export'
 import type { W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 
 export type TextModelOp =
   | { op: 'merge'; blockIds: string[] }
   | { op: 'split'; blockId: string }
-  | { op: 'auto'; pageIndex: number }
 
 export class TextModelEditError extends Error {
   constructor(
@@ -65,12 +64,6 @@ export async function editTextModel(payload: Payload, pdfeditId: string | number
     guard([op.blockId])
     next = splitTextBlock(model, op.blockId)
     changed = next === model ? 0 : 1
-  } else {
-    for (const group of suggestMerges(model, op.pageIndex)) {
-      if (group.some((id) => owners.has(id))) continue
-      next = mergeTextBlocks(next, group)
-      changed += 1
-    }
   }
   if (changed > 0) {
     await payload.update({

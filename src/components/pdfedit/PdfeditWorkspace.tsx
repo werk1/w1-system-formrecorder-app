@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { W1PdfEditBlock, googleFontsCssUrl, mergeTextBlocks, splitTextBlock, suggestMerges } from '@werk1/w1-system-pdfedit'
+import { W1PdfEditBlock, googleFontsCssUrl, mergeTextBlocks, splitTextBlock } from '@werk1/w1-system-pdfedit'
 import type {
   W1PdfEditRecord,
   W1PdfEditRecordBlock,
@@ -52,8 +52,7 @@ const LABELS: W1PdfEditLabels = {
   blockNamePlaceholder: 'Blockname (z. B. Hotel, Adresse)',
   blockTextLabel: 'Text',
   removeBlock: 'Block entfernen',
-  showTexts: 'Texte einblenden',
-  hideTexts: 'Texte ausblenden',
+  editTexts: 'Texte bearbeiten',
   charLimit: (max) => `Max. ${max} Zeichen`,
   charOverflow: (max) => `Mehr als ${max} Zeichen: der Rest wird beim Aktualisieren des PDFs abgeschnitten`,
   applyPdf: 'PDF aktualisieren',
@@ -64,6 +63,7 @@ const LABELS: W1PdfEditLabels = {
   styleReset: 'Blockstil',
   frameMove: 'Textrahmen verschieben',
   frameReset: 'Zurück zum ursprünglichen Rahmen',
+  textCut: (count) => `Text wird abgeschnitten: ${count} Zeichen passen nicht in den Rahmen`,
   fontUnknown: 'Keine Schriftinformation im PDF: Text in Standarddarstellung.',
   fontMissing: (family) => `Schrift „${family}“ ist hier nicht verfügbar: Ersatzschrift.`,
   pagesStatus: (first, last, count) => `Seiten ${first}–${last} / ${count}`,
@@ -77,8 +77,6 @@ const LABELS: W1PdfEditLabels = {
   splitBlock: 'Verbundenen Block trennen',
   splitHint: 'Verbundener Block: „Trennen“ stellt die Ursprungsblöcke wieder her.',
   splitBlockedByRecord: (name) => `Dieser verbundene Block gehört zum Datensatz „${name}“ und lässt sich nicht trennen. Zuerst aus dem Datensatz entfernen.`,
-  autoMerge: 'Absätze automatisch verbinden',
-  autoMergeNone: 'Keine getrennten Absätze gefunden',
   restorePage: 'Seite auf Original zurücksetzen',
   restoreConfirm: (page) => `Seite ${page} auf das Original zurücksetzen? Alle bearbeiteten Texte dieser Seite gehen verloren (im PDF und in den Datensätzen). Das macht keinen einzelnen Schritt rückgängig.`,
   restorePdf: 'Original-PDF wiederherstellen',
@@ -205,7 +203,7 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
 
   /** Merges/splits text blocks on the server, then mirrors the change locally. */
   const editBlocks = useCallback(
-    async (body: { op: 'merge'; blockIds: string[] } | { op: 'split'; blockId: string } | { op: 'auto'; pageIndex: number }) => {
+    async (body: { op: 'merge'; blockIds: string[] } | { op: 'split'; blockId: string }) => {
       try {
         await postJson('/api/pdfedit-textmodel', 'POST', { pdfeditId: docId, ...body })
         setInput((current) => {
@@ -213,12 +211,6 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
           let model = current.textModel
           if (body.op === 'merge') model = mergeTextBlocks(model, body.blockIds)
           else if (body.op === 'split') model = splitTextBlock(model, body.blockId)
-          else {
-            const owned = new Set(current.records.flatMap((r) => r.blocks.map((b) => b.blockId)))
-            for (const group of suggestMerges(model, body.pageIndex)) {
-              if (!group.some((id) => owned.has(id))) model = mergeTextBlocks(model, group)
-            }
-          }
           return { ...current, textModel: model }
         })
       } catch (e) {
@@ -377,7 +369,6 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
         onRecordSave={onRecordSave}
         onMergeBlocks={(blockIds) => void editBlocks({ op: 'merge', blockIds })}
         onSplitBlock={(blockId) => void editBlocks({ op: 'split', blockId })}
-        onAutoMerge={(pageIndex) => editBlocks({ op: 'auto', pageIndex })}
         onApplyPdf={() => void runPdfUpdate({ action: 'apply' })}
         onRestorePage={(pageIndex) => void runPdfUpdate({ action: 'restore', pageIndex })}
         onRestorePdf={() => void runPdfUpdate({ action: 'restore-all' })}
