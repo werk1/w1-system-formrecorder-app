@@ -11,6 +11,21 @@
 const fs = require('fs')
 const path = require('path')
 
+// pdfjs-dist (server-side PDF extraction) loads @napi-rs/canvas through a
+// dynamic require the standalone tracer cannot see. Without it pdf.js has no
+// ImageData/Path2D, so apps that ship pdfjs-dist must also ship a loadable
+// canvas with its native binary for this image's platform.
+if (fs.existsSync('/app/node_modules/pdfjs-dist/package.json')) {
+  try {
+    require('/app/node_modules/@napi-rs/canvas')
+  } catch (error) {
+    console.error(`[validate-runtime-packages] pdfjs-dist is installed but @napi-rs/canvas cannot be loaded: ${error.message}`)
+    console.error('[validate-runtime-packages] check outputFileTracingIncludes in next.config.mjs and reinstall-optional-deps.sh')
+    process.exit(1)
+  }
+  console.log('[validate-runtime-packages] @napi-rs/canvas loads (pdfjs-dist canvas polyfills available)')
+}
+
 const manifestFile = '/app/.local-runtime-packages.json'
 if (!fs.existsSync(manifestFile)) {
   console.log('[validate-runtime-packages] no local runtime package manifest found, skipping')
