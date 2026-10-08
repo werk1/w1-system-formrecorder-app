@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { searchPublishedFlipbook } from '@/lib/flipbook/search'
+import { isAdminRequest } from '@/lib/blocks/flipbook/viewerAccess'
 
 export const runtime = 'nodejs'
 
@@ -13,7 +14,9 @@ export const runtime = 'nodejs'
  * otherwise: the reader probes with it to decide whether to show its search.
  *
  * Only published flipbooks are searchable and only hits (page, snippet, block
- * rect) leave the server — never the text model.
+ * rect) leave the server — never the text model. A flipbook with
+ * `defaultConfig.allowSearch` off answers 404 (as not searchable) to everyone
+ * but admins.
  */
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get('slug')?.trim() ?? ''
@@ -25,9 +28,11 @@ export async function GET(request: NextRequest) {
   const effective = query.length < 2 ? '' : query
   const payload = await getPayload({ config: configPromise })
   try {
-    const hits = await searchPublishedFlipbook(payload, slug, effective)
+    const admin = await isAdminRequest(payload, request.headers)
+    const hits = await searchPublishedFlipbook(payload, slug, effective, { admin })
     if (hits === null) return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Flipbook not found.' } }, { status: 404 })
-    return NextResponse.json({ hits }, { headers: { 'Cache-Control': 'public, max-age=60' } })
+    // An admin answer may carry what the public one must not: never in a shared cache.
+    return NextResponse.json({ hits }, { headers: { 'Cache-Control': admin ? 'private, no-store' : 'public, max-age=60' } })
   } catch (error) {
     payload.logger.error(`flipbook-search failed: ${String(error)}`)
     return NextResponse.json({ error: { code: 'FAILED', message: 'Search failed.' } }, { status: 500 })

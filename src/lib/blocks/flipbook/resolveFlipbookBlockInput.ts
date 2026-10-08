@@ -3,6 +3,7 @@ import { mergeConfig } from '@werk1/w1-system-flipbook/config'
 import type { W1FlipbookConfig, W1FlipbookInput, W1FlipbookPage } from '@werk1/w1-system-flipbook/types'
 import type { Payload } from 'payload'
 import { FLIPBOOK_BOOLEAN_CONFIG_KEYS } from './config'
+import { isAdminRequest, withAdminFeatures } from './viewerAccess'
 import type { FlipbookSectionOverrides, ResolvedFlipbookBlockData } from './types'
 
 type FlipbookSection = Extract<NonArticlePageSection, { type: 'w1-flipbook-block' }>
@@ -220,7 +221,10 @@ export async function resolveFlipbookBlockInput(
   if (!flipbookSlug) return data
 
   const doc = await loadPublishedFlipbook(context.payload, flipbookSlug, context.locale)
-  data.input = mapFlipbookToInput(doc, withSectionDefaults(readSectionOverrides(section as unknown as Rec)))
+  data.input = withAdminFeatures(
+    mapFlipbookToInput(doc, withSectionDefaults(readSectionOverrides(section as unknown as Rec))),
+    await isAdminRequest(context.payload),
+  )
   return data
 }
 

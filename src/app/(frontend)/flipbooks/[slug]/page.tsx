@@ -2,6 +2,7 @@ import ClientLayout from '@/components/client-layout/ClientLayout'
 import { FlipbookReader } from '@/components/flipbook/FlipbookReader'
 import { resolveFlipbookLocale } from '@/lib/blocks/flipbook/locale'
 import { coverUrlOf, issueOf, loadPublishedFlipbook, mapFlipbookToInput } from '@/lib/blocks/flipbook/resolveFlipbookBlockInput'
+import { isAdminRequest, withAdminFeatures } from '@/lib/blocks/flipbook/viewerAccess'
 import { getClientLogo } from '@/lib/theme/clientLogo'
 import configPromise from '@payload-config'
 import type { Metadata } from 'next'
@@ -26,7 +27,7 @@ function baseUrl(): string {
 const loadFlipbook = cache(async (slug: string, locale: string) => {
   const payload = await getPayload({ config: configPromise })
   const doc = await loadPublishedFlipbook(payload, slug, locale)
-  return { doc, input: mapFlipbookToInput(doc) }
+  return { doc, input: withAdminFeatures(mapFlipbookToInput(doc), await isAdminRequest(payload)) }
 })
 
 export async function generateMetadata({ params, searchParams }: FlipbookReaderPageProps): Promise<Metadata> {

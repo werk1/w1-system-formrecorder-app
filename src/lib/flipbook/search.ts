@@ -123,7 +123,18 @@ async function prepare(payload: Payload, flipbook: Rec): Promise<Prepared | null
  * Returns `null` when the flipbook is not found or has no text. An empty
  * query returns `[]` for a searchable flipbook (the reader probes with it).
  */
-export async function searchPublishedFlipbook(payload: Payload, slug: string, query: string): Promise<FlipbookSearchHit[] | null> {
+/**
+ * Hits of a published flipbook, or `null` when it cannot be searched — also
+ * when its `defaultConfig.allowSearch` is off and the viewer is no admin.
+ * Hits carry the block text: copying a found block belongs to the search
+ * (`allowTextSelect` only governs the reader's text-select mode).
+ */
+export async function searchPublishedFlipbook(
+  payload: Payload,
+  slug: string,
+  query: string,
+  viewer: { admin: boolean } = { admin: false },
+): Promise<FlipbookSearchHit[] | null> {
   const found = await payload.find({
     collection: 'flipbooks' as never,
     where: { and: [{ slug: { equals: slug.toLowerCase() } }, { isPublished: { equals: true } }, { publishedRevision: { exists: true } }] } as never,
@@ -131,10 +142,12 @@ export async function searchPublishedFlipbook(payload: Payload, slug: string, qu
     limit: 1,
     overrideAccess: true,
     // Only what the index cache key needs; `prepare` loads the text model on a miss.
-    select: { publishedRevision: true, overrideRevision: true, updatedAt: true } as never,
+    select: { publishedRevision: true, overrideRevision: true, updatedAt: true, defaultConfig: true } as never,
   })
   const flipbook = asRec(found.docs[0])
   if (!flipbook) return null
+  const settings = asRec(flipbook.defaultConfig)
+  if (!viewer.admin && settings?.allowSearch === false) return null
   const prepared = await prepare(payload, flipbook)
   if (!prepared) return null
   if (!query.trim()) return []

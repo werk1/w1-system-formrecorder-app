@@ -291,6 +291,16 @@ apps with module `flipbook` active.
   generated size (Payload omits sizes wider than the original).
 - `labels.pdfLinkPage` names internal PDF links (de "Zu Seite n", en
   "Go to page n").
+- Viewer switches per flipbook in `defaultConfig` (checkboxes, from
+  `FLIPBOOK_BOOLEAN_CONFIG_KEYS`; default on, page sections cannot override
+  them): `allowSearch` — the search including selecting and copying the text
+  of a found block; `allowTextSelect` — the text-select mode (any page text
+  from the PDF text layer of the manifest). The PDF download stays either way.
+  Admins keep both: the reader route, the start page and page sections pass
+  `withAdminFeatures(input, isAdminRequest(…))`
+  (`src/lib/blocks/flipbook/viewerAccess.ts`). The search route enforces
+  `allowSearch` on the server (404 for everyone but admins, so the reader's
+  probe shows no search); admin answers are `Cache-Control: private, no-store`.
 
 ## Generated App Wiring
 

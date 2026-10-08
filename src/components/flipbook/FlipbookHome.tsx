@@ -5,6 +5,7 @@ import { FlipbookHeader } from '@/components/flipbook/FlipbookHeader'
 import { FlipbookReader } from '@/components/flipbook/FlipbookReader'
 import { resolveFlipbookLocale } from '@/lib/blocks/flipbook/locale'
 import { issueOf, listPublishedFlipbooks, loadPublishedFlipbook, mapFlipbookToInput } from '@/lib/blocks/flipbook/resolveFlipbookBlockInput'
+import { withAdminFeatures } from '@/lib/blocks/flipbook/viewerAccess'
 import { PdfeditEditView } from '@/components/pdfedit/PdfeditEditView'
 import { flipbookLocaleQuery } from '@/lib/blocks/flipbook/locale'
 import { getPayloadClient } from '@/lib/payload/getPayloadClient'
@@ -46,13 +47,14 @@ export async function FlipbookHome({
 
   const slug = book && items.some((i) => i.slug === book) ? book : items[0]?.slug
   const doc = slug ? await loadPublishedFlipbook(payload, slug, locale) : null
-  const input = mapFlipbookToInput(doc)
   const clientLogo = await getClientLogo()
 
-  // Payload session (cookie): logged-in users get the account menu, admins the editor (`?edit=1`).
+  // Payload session (cookie): logged-in users get the account menu, admins the editor (`?edit=1`)
+  // and keep search and text selection even where the flipbook turns them off.
   const { user: sessionUser } = await payload.auth({ headers: await headers() })
   const sessionData = sessionUser as SessionUser | null
   const isAdmin = Boolean(sessionData?.roles?.includes('admin'))
+  const input = withAdminFeatures(mapFlipbookToInput(doc), isAdmin)
   const account: AccountUser | null = sessionData
     ? { name: [sessionData.firstName, sessionData.lastName].filter(Boolean).join(' ') || sessionData.email || '', isAdmin }
     : null
