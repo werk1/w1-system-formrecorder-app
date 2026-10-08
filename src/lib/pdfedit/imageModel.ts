@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs'
-import path from 'path'
 import type { Payload } from 'payload'
 import { extractImagePlacements } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1PdfImageModel } from '@werk1/w1-system-pdfedit/types'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
+import { findMedia, mediaPath } from './context'
 
 type FlipbookLike = {
   id: string | number
@@ -31,12 +31,11 @@ export async function ensureImageModel(payload: Payload, flipbook: FlipbookLike)
   if (!revision) return null
   if (isModel(flipbook.imageModel, revision)) return flipbook.imageModel
   const sourceId = relationId(flipbook.publishedSourcePdf)
-  const staticDir = payload.collections.media?.config?.upload?.staticDir
-  if (!sourceId || !staticDir) return null
+  if (!sourceId) return null
   try {
-    const source = (await payload.findByID({ collection: 'media', id: sourceId, depth: 0, overrideAccess: true })) as { filename?: unknown }
-    if (typeof source.filename !== 'string' || !source.filename) return null
-    const bytes = new Uint8Array(await fs.readFile(path.join(staticDir, source.filename)))
+    const sourcePath = mediaPath(payload, await findMedia(payload, sourceId))
+    if (!sourcePath) return null
+    const bytes = new Uint8Array(await fs.readFile(sourcePath))
     const { images } = await extractImagePlacements(bytes)
     const model: W1PdfImageModel = { revision, images }
     await payload.update({

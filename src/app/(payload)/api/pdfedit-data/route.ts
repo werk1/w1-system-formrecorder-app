@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import type { W1PdfEditRecord, W1PdfImageEdit } from '@werk1/w1-system-pdfedit/types'
+import type { W1PdfImageEdit } from '@werk1/w1-system-pdfedit/types'
+import { currentImageEdits } from '@werk1/w1-system-pdfedit/host'
 import { relationId } from '@/lib/flipbook'
 import { ensureTextStyles } from '@/lib/pdfedit/textStyles'
 import { ensureImageModel } from '@/lib/pdfedit/imageModel'
-import { currentImageEdits } from '@werk1/w1-system-pdfedit/host'
 import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
 import { ensureReadManifest } from '@/lib/pdfedit/readManifest'
+import { errorJson, loadFlipbookOf, loadPdfedit, loadRecords } from '@/lib/pdfedit/context'
+import type { MediaDoc } from '@/lib/pdfedit/context'
 
 export const runtime = 'nodejs'
 
@@ -18,39 +20,6 @@ export const runtime = 'nodejs'
  * ordered records. Admin-only (editor tool).
  */
 
-type MediaDoc = { id: string | number; filename?: unknown; alt?: unknown }
-type PageRow = { image?: unknown; width?: unknown; height?: unknown; label?: unknown }
-type FlipbookDoc = {
-  id: string | number
-  title?: unknown
-  slug?: unknown
-  publishedSourcePdf?: unknown
-  publishedRevision?: unknown
-  textModel?: unknown
-  imageModel?: unknown
-  pages?: PageRow[] | null
-}
-type PdfeditDoc = {
-  id: string | number
-  title?: unknown
-  slug?: unknown
-  flipbook?: unknown
-  editedPdf?: unknown
-  editedPages?: Array<{ pageIndex?: unknown; image?: unknown; width?: unknown; height?: unknown }> | null
-  editedRevision?: unknown
-  imageEdits?: unknown
-  manifestUrl?: unknown
-  manifestPdf?: unknown
-  manifestMedia?: unknown
-}
-type PdfeditrecordDoc = {
-  id: string | number
-  order?: unknown
-  name?: unknown
-  pageIndex?: unknown
-  blocks?: unknown
-}
-
 const mediaFileUrl = (filename: unknown): string | null =>
   typeof filename === 'string' && filename ? `/api/media/file/${filename}` : null
 
@@ -59,7 +28,7 @@ async function loadMediaMap(payload: Payload, ids: Array<string | number>): Prom
   if (!ids.length) return map
   const { docs } = await payload.find({
     collection: 'media',
-    where: { id: { in: ids } } as never,
+    where: { id: { in: [...new Set(ids.map(String))] } } as never,
     depth: 0,
     pagination: false,
     overrideAccess: true,
@@ -73,32 +42,26 @@ export async function GET(request: NextRequest) {
   if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const id = request.nextUrl.searchParams.get('id')
-  if (!id) {
-    return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'id is required.' } }, { status: 400 })
-  }
+  if (!id) return errorJson(400, 'INVALID_REQUEST', 'id is required.')
 
-  const doc = (await payload
-    .findByID({ collection: 'pdfedits' as never, id, depth: 0, overrideAccess: true })
-    .catch(() => null)) as PdfeditDoc | null
-  if (!doc) {
-    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Pdfedit not found.' } }, { status: 404 })
-  }
+  const doc = await loadPdfedit(payload, id)
+  if (!doc) return errorJson(404, 'NOT_FOUND', 'Pdfedit not found.')
 
-  const flipbookId = relationId(doc.flipbook)
-  const flipbook = flipbookId
-    ? ((await payload
-        .findByID({ collection: 'flipbooks' as never, id: flipbookId, depth: 0, overrideAccess: true })
-        .catch(() => null)) as FlipbookDoc | null)
-    : null
+  const flipbook = await loadFlipbookOf(payload, doc)
   if (!flipbook || !Array.isArray(flipbook.pages) || !flipbook.publishedRevision) {
-    return NextResponse.json(
-      { error: { code: 'NOT_READY', message: 'Flipbook has no published revision (convert it first).' } },
-      { status: 422 },
-    )
+    return errorJson(422, 'NOT_READY', 'Flipbook has no published revision (convert it first).')
   }
+  const flipbookPages = flipbook.pages
+
+  // The records load beside the one-time fills of image model and text styles; those two
+  // write the same flipbook and stay in sequence (no write conflict).
+  const [[imageModel, styledModel], records] = await Promise.all([
+    (async () => [await ensureImageModel(payload, flipbook), await ensureTextStyles(payload, flipbook)] as const)(),
+    loadRecords(payload, doc.id),
+  ])
 
   const mediaIds = [
-    ...flipbook.pages.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
+    ...flipbookPages.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
     relationId(flipbook.publishedSourcePdf),
   ].filter((v): v is string => Boolean(v))
 
@@ -110,12 +73,11 @@ export async function GET(request: NextRequest) {
     ...editedRows.map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
     ...(editedPdfId ? [editedPdfId] : []),
   )
-  const imageModel = await ensureImageModel(payload, flipbook)
   const storedImageEdits = imageModel ? currentImageEdits(doc.imageEdits, imageModel.revision) : []
   mediaIds.push(...storedImageEdits.filter((e) => !e.remove).map((e) => e.mediaId))
   const media = await loadMediaMap(payload, mediaIds)
 
-  const pages = flipbook.pages
+  const pages = flipbookPages
     .map((p, index) => {
       const img = media.get(String(relationId(p.image)))
       const imageUrl = mediaFileUrl(img?.filename)
@@ -131,24 +93,8 @@ export async function GET(request: NextRequest) {
     })
     .filter((p): p is NonNullable<typeof p> => p !== null)
 
-  const { docs: recordDocs } = await payload.find({
-    collection: 'pdfeditrecords' as never,
-    where: { pdfedit: { equals: doc.id } } as never,
-    sort: 'order',
-    depth: 0,
-    pagination: false,
-    overrideAccess: true,
-  })
-  const records = (recordDocs as unknown as PdfeditrecordDoc[]).map((r) => ({
-    id: String(r.id),
-    order: typeof r.order === 'number' ? r.order : 0,
-    ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
-    pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
-    blocks: Array.isArray(r.blocks) ? (r.blocks as W1PdfEditRecord['blocks']) : [],
-  }))
-
   const pdfMedia = media.get(String(relationId(flipbook.publishedSourcePdf)))
-  const textModel = (await ensureTextStyles(payload, flipbook)) ?? { revision: String(flipbook.publishedRevision), pages: [] }
+  const textModel = styledModel ?? { revision: String(flipbook.publishedRevision), pages: [] }
 
   const editedPages: Array<(typeof pages)[number] | null> = pages.map(() => null)
   for (const row of editedRows) {
@@ -165,20 +111,21 @@ export async function GET(request: NextRequest) {
       alt: `${pages[index].alt} (aktualisiert)`,
     }
   }
-  const imageEdits: W1PdfImageEdit[] = storedImageEdits.flatMap<W1PdfImageEdit>((e) => {
-    if (e.remove) return [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: '', remove: true as const, rect: e.rect }]
+  // `applied` counts only while the updated PDF of this revision is the one shown.
+  const imageEdits: W1PdfImageEdit[] = storedImageEdits.flatMap<W1PdfImageEdit>(({ revision: _revision, applied, ...e }) => {
+    void _revision
+    const mark = applied && editedValid ? { applied: true } : {}
+    if (e.remove) return [{ ...e, ...mark }]
     const mediaUrl = mediaFileUrl(media.get(e.mediaId)?.filename)
     // A deleted replacement media drops out of the editor (the writer skips it too).
-    return mediaUrl
-      ? [{ imageId: e.imageId, pageIndex: e.pageIndex, mediaId: e.mediaId, mediaUrl, rect: e.rect, zoom: e.zoom, panX: e.panX, panY: e.panY }]
-      : []
+    return mediaUrl ? [{ ...e, mediaUrl, ...mark }] : []
   })
   const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
   // Text layer and links of the PDF the reader shows (non-fatal when missing).
   const manifestUrl = await ensureReadManifest(payload, doc, {
     readPdfId: editedPdfId ? String(editedPdfId) : relationId(flipbook.publishedSourcePdf),
     revision: String(flipbook.publishedRevision),
-    pageLabels: flipbook.pages.map((p) => (typeof p.label === 'string' ? p.label : '')),
+    pageLabels: flipbookPages.map((p) => (typeof p.label === 'string' ? p.label : '')),
   })
 
   return NextResponse.json({

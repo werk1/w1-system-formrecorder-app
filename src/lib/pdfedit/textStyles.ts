@@ -1,9 +1,9 @@
-import path from 'path'
 import type { Payload } from 'payload'
 import { applyTextStyles, W1_TEXT_STYLE_REVISION } from '@werk1/w1-system-pdfedit/extract'
 import type { W1FormTextModel } from '@werk1/w1-system-pdfedit/types'
 import { extractStyleLayout } from '@/lib/flipbook/pdfConverter'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
+import { findMedia, mediaPath } from './context'
 
 type FlipbookLike = { id: string | number; publishedSourcePdf?: unknown; textModel?: unknown }
 
@@ -21,12 +21,11 @@ export async function ensureTextStyles(payload: Payload, flipbook: FlipbookLike)
   if (!model || !Array.isArray(model.pages)) return null
   if (!hasBlocks(model) || (model.styled && model.spanned && model.styleRevision === W1_TEXT_STYLE_REVISION)) return model
   const sourceId = relationId(flipbook.publishedSourcePdf)
-  const staticDir = payload.collections.media?.config?.upload?.staticDir
-  if (!sourceId || !staticDir) return model
+  if (!sourceId) return model
   try {
-    const source = (await payload.findByID({ collection: 'media', id: sourceId, depth: 0, overrideAccess: true })) as { filename?: unknown }
-    if (typeof source.filename !== 'string' || !source.filename) return model
-    const styled = applyTextStyles(model, await extractStyleLayout(path.join(staticDir, source.filename)))
+    const sourcePath = mediaPath(payload, await findMedia(payload, sourceId))
+    if (!sourcePath) return model
+    const styled = applyTextStyles(model, await extractStyleLayout(sourcePath))
     await payload.update({
       collection: 'flipbooks' as never,
       id: flipbook.id,

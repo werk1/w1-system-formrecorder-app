@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { W1PdfEditBlock, googleFontsCssUrl, mergeTextBlocks, splitTextBlock } from '@werk1/w1-system-pdfedit'
 import type {
   W1PdfEditRecord,
@@ -21,6 +21,10 @@ import type { ReactNode } from 'react'
  *
  * The component keeps a local copy of `input.records` so edits feel instant;
  * the package only emits changes — this component is the persistence adapter.
+ * Saves of one record go out one after another, so the last change wins.
+ * Image replacements are stored as pending, like edited texts; "PDF aktualisieren"
+ * writes both into the PDF. Removing or resetting an image updates the PDF at once
+ * (then pending texts are written too). All updates run through one queue.
  */
 
 export type PdfeditMediaPicker = {
@@ -109,6 +113,10 @@ const LABELS: W1PdfEditLabels = {
   imageFit: 'Einpassen',
 }
 
+const IMAGE_PENDING = 'Bildänderung gespeichert – mit „PDF aktualisieren“ ins PDF übernehmen'
+
+type PdfUpdateBody = { action: 'apply' } | { action: 'restore'; pageIndex: number } | { action: 'restore-all' }
+
 async function postJson(url: string, method: string, body: unknown): Promise<Record<string, unknown>> {
   const res = await fetch(url, {
     method,
@@ -156,10 +164,9 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
     document.head.appendChild(link)
   }, [fontsUrl])
 
-  /** Writes the edited texts into the PDF (apply) or restores one page. */
-  const runPdfUpdate = useCallback(
-    async (body: { action: 'apply' } | { action: 'restore'; pageIndex: number } | { action: 'restore-all' }) => {
-      setPdfBusy(true)
+  /** Writes the edited texts and image edits into the PDF (apply) or restores one page / the whole PDF. */
+  const executeUpdate = useCallback(
+    async (body: PdfUpdateBody) => {
       setStatus(LABELS.applyPdfBusy ?? '')
       try {
         const result = (await postJson('/api/pdfedit-pdf', 'POST', { pdfeditId: docId, ...body })) as {
@@ -186,11 +193,38 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
         setStatus(parts.join(' · '))
       } catch (e) {
         setStatus(`Fehler: ${(e as Error).message}`)
-      } finally {
-        setPdfBusy(false)
       }
     },
     [docId, loadInput],
+  )
+
+  // Updates run one after another (the server refuses a second one with BUSY). An apply
+  // that still waits in the queue covers a new apply: it reads the stored state when it starts.
+  const updateQueue = useRef<{ tail: Promise<void>; waitingApply: Promise<void> | null; open: number }>({
+    tail: Promise.resolve(),
+    waitingApply: null,
+    open: 0,
+  })
+  const runPdfUpdate = useCallback(
+    (body: PdfUpdateBody): Promise<void> => {
+      const queue = updateQueue.current
+      if (body.action === 'apply' && queue.waitingApply) return queue.waitingApply
+      queue.open += 1
+      setPdfBusy(true)
+      const job: Promise<void> = queue.tail
+        .then(() => {
+          if (queue.waitingApply === job) queue.waitingApply = null
+          return executeUpdate(body)
+        })
+        .finally(() => {
+          queue.open -= 1
+          if (queue.open === 0) setPdfBusy(false)
+        })
+      if (body.action === 'apply') queue.waitingApply = job
+      queue.tail = job.catch(() => undefined)
+      return job
+    },
+    [executeUpdate],
   )
 
   /** Replaces or appends a record in local state (keeps `order` sorting intact). */
@@ -221,10 +255,23 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
     [docId],
   )
 
+  // Per record id: the tail of its save chain (an older save never lands after a newer one).
+  const saveChains = useRef(new Map<string, Promise<void>>())
   const persistRecord = useCallback(
-    async (record: W1PdfEditRecord) => {
-      await postJson('/api/pdfedit-records', 'POST', { pdfeditId: docId, record })
-      setStatus(LABELS.recordSaved)
+    (record: W1PdfEditRecord) => {
+      const chains = saveChains.current
+      const run = (chains.get(record.id) ?? Promise.resolve())
+        .catch(() => undefined)
+        .then(async () => {
+          await postJson('/api/pdfedit-records', 'POST', { pdfeditId: docId, record })
+          setStatus(LABELS.recordSaved)
+        })
+      const tail = run.catch(() => undefined)
+      chains.set(record.id, tail)
+      void tail.then(() => {
+        if (chains.get(record.id) === tail) chains.delete(record.id)
+      })
+      return run
     },
     [docId],
   )
@@ -262,11 +309,11 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
       setInput((current) =>
         current ? { ...current, records: current.records.filter((r) => r.id !== recordId) } : current,
       )
-      void postJson('/api/pdfedit-records', 'DELETE', { recordId }).catch(
+      void postJson('/api/pdfedit-records', 'DELETE', { pdfeditId: docId, recordId }).catch(
         (e: Error) => setStatus(`Fehler: ${e.message}`),
       )
     },
-    [],
+    [docId],
   )
 
   const onRecordReorder = useCallback(
@@ -287,7 +334,12 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
     [docId, input],
   )
 
-  /** Stores an image replacement (optimistic), reloads the input when the server refuses it. */
+  /**
+   * Stores an image edit (optimistic), reloads the input when the server refuses it.
+   * A replacement stays pending until the next PDF update (the editor draws it over the
+   * page); a removal updates the PDF at once, because only a new page preview shows
+   * what lies beneath the image.
+   */
   const onImageEditSave = useCallback(
     (edit: W1PdfImageEdit) => {
       setInput((current) =>
@@ -302,8 +354,7 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
           ...(edit.remove ? { remove: true } : { zoom: edit.zoom, panX: edit.panX, panY: edit.panY }),
         },
       })
-        // The page preview is a raster: the replacement only shows up for real once the PDF is written.
-        .then(() => runPdfUpdate({ action: 'apply' }))
+        .then(() => (edit.remove ? runPdfUpdate({ action: 'apply' }) : setStatus(IMAGE_PENDING)))
         .catch((e: Error) => {
           setStatus(`Fehler: ${e.message}`)
           void loadInput(docId).catch(() => undefined)
@@ -312,6 +363,7 @@ export function PdfeditWorkspace({ docId, media }: { docId: string; media: Pdfed
     [docId, loadInput, runPdfUpdate],
   )
 
+  /** Back to the original image: the PDF is updated at once (an updated page preview still shows the edit). */
   const onImageEditReset = useCallback(
     (imageId: string) => {
       setInput((current) =>

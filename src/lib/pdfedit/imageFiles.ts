@@ -1,10 +1,8 @@
 import { promises as fs } from 'fs'
-import path from 'path'
 import type { Payload } from 'payload'
 import type { W1PdfImageReplacement } from '@werk1/w1-system-pdfedit/pdf'
 import type { StoredImageEdit } from '@werk1/w1-system-pdfedit/host'
-
-type MediaDoc = { filename?: unknown; mimeType?: unknown }
+import { findMedia, mediaPath } from './context'
 
 export type LoadedReplacement = { ok: true; replacement: W1PdfImageReplacement } | { ok: false; imageId: string; reason: 'media-missing' | 'media-unreadable' }
 
@@ -15,15 +13,11 @@ export type LoadedReplacement = { ok: true; replacement: W1PdfImageReplacement }
  * JPEG and PNG.
  */
 export async function loadReplacement(payload: Payload, edit: StoredImageEdit): Promise<LoadedReplacement> {
-  const staticDir = payload.collections.media?.config?.upload?.staticDir
-  const media = (await payload
-    .findByID({ collection: 'media', id: edit.mediaId, depth: 0, overrideAccess: true })
-    .catch(() => null)) as MediaDoc | null
-  if (!staticDir || !media || typeof media.filename !== 'string' || !media.filename) {
-    return { ok: false, imageId: edit.imageId, reason: 'media-missing' }
-  }
+  const media = await findMedia(payload, edit.mediaId)
+  const filePath = mediaPath(payload, media)
+  if (!media || !filePath) return { ok: false, imageId: edit.imageId, reason: 'media-missing' }
   try {
-    const file = await fs.readFile(path.join(staticDir, media.filename))
+    const file = await fs.readFile(filePath)
     let bytes: Uint8Array = new Uint8Array(file)
     let format: 'jpeg' | 'png'
     if (media.mimeType === 'image/jpeg') format = 'jpeg'

@@ -3,6 +3,7 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { envFontProvider, PdfUpdateError, updatePdfedit } from '@/lib/pdfedit/pdfUpdate'
 import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
+import { errorJson } from '@/lib/pdfedit/context'
 
 export const runtime = 'nodejs'
 // Rendering the changed pages can take a while on large documents.
@@ -12,8 +13,9 @@ export const maxDuration = 300
  * Admin-only PDF update of a pdfedit document.
  *
  * POST { pdfeditId, action: 'apply' }
- *   Writes all edited record texts into the PDF (starting from the backed-up
- *   original) and recomputes the previews of the changed pages.
+ *   Writes all edited record texts and all image edits into the PDF (starting
+ *   from the backed-up original) and recomputes the previews of the changed
+ *   pages; the written image edits are marked `applied`.
  * POST { pdfeditId, action: 'restore', pageIndex }
  *   Resets the texts of one page to the original and updates the PDF — that
  *   page is the original again.
@@ -33,8 +35,7 @@ export async function POST(request: NextRequest) {
   if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const body = (await request.json().catch(() => null)) as Body | null
-  const invalid = (message: string) =>
-    NextResponse.json({ error: { code: 'INVALID_REQUEST', message } }, { status: 400 })
+  const invalid = (message: string) => errorJson(400, 'INVALID_REQUEST', message)
   if (body?.pdfeditId === undefined || body.pdfeditId === null || body.pdfeditId === '') return invalid('pdfeditId is required.')
   if (body.action !== 'apply' && body.action !== 'restore' && body.action !== 'restore-all') {
     return invalid("action must be 'apply', 'restore' or 'restore-all'.")
@@ -56,12 +57,7 @@ export async function POST(request: NextRequest) {
     )
     return NextResponse.json(result)
   } catch (error) {
-    if (error instanceof PdfUpdateError) {
-      return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: STATUS[error.code] })
-    }
-    return NextResponse.json(
-      { error: { code: 'FAILED', message: error instanceof Error ? error.message : String(error) } },
-      { status: 500 },
-    )
+    if (error instanceof PdfUpdateError) return errorJson(STATUS[error.code], error.code, error.message)
+    return errorJson(500, 'FAILED', error instanceof Error ? error.message : String(error))
   }
 }

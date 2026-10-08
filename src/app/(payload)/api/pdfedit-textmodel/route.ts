@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import { editTextModel, TextModelEditError } from '@/lib/pdfedit/textModelEdit'
 import type { TextModelOp } from '@/lib/pdfedit/textModelEdit'
 import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
+import { errorJson } from '@/lib/pdfedit/context'
 
 export const runtime = 'nodejs'
 
@@ -24,16 +25,13 @@ export async function POST(request: NextRequest) {
     ((body.op === 'merge' && Array.isArray(body.blockIds) && body.blockIds.every((id) => typeof id === 'string')) ||
       (body.op === 'split' && typeof body.blockId === 'string'))
   if (!body || !valid) {
-    return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'pdfeditId and a valid op are required.' } }, { status: 400 })
+    return errorJson(400, 'INVALID_REQUEST', 'pdfeditId and a valid op are required.')
   }
   try {
     const { pdfeditId, ...op } = body
     return NextResponse.json(await editTextModel(payload, pdfeditId as string | number, op as TextModelOp))
   } catch (error) {
-    if (error instanceof TextModelEditError) {
-      const status = error.code === 'NOT_FOUND' ? 404 : 409
-      return NextResponse.json({ error: { code: error.code, message: error.message } }, { status })
-    }
-    return NextResponse.json({ error: { code: 'FAILED', message: String(error instanceof Error ? error.message : error) } }, { status: 500 })
+    if (error instanceof TextModelEditError) return errorJson(error.code === 'NOT_FOUND' ? 404 : 409, error.code, error.message)
+    return errorJson(500, 'FAILED', String(error instanceof Error ? error.message : error))
   }
 }

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { recordsToCsv } from '@werk1/w1-system-pdfedit/export'
-import type { W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
 import { authenticateAdmin, unauthorized } from '@/lib/pdfedit/adminAuth'
+import { errorJson, loadPdfedit, loadRecords } from '@/lib/pdfedit/context'
 
 export const runtime = 'nodejs'
 
@@ -20,34 +20,12 @@ export async function GET(request: NextRequest) {
   if (!(await authenticateAdmin(payload, request))) return unauthorized()
 
   const id = request.nextUrl.searchParams.get('id')
-  if (!id) {
-    return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'id is required.' } }, { status: 400 })
-  }
+  if (!id) return errorJson(400, 'INVALID_REQUEST', 'id is required.')
 
-  const doc = (await payload
-    .findByID({ collection: 'pdfedits' as never, id, depth: 0, overrideAccess: true })
-    .catch(() => null)) as { id: string | number; slug?: unknown; title?: unknown; schema?: Array<Record<string, unknown>> | null } | null
-  if (!doc) {
-    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Pdfedit not found.' } }, { status: 404 })
-  }
+  const doc = await loadPdfedit(payload, id)
+  if (!doc) return errorJson(404, 'NOT_FOUND', 'Pdfedit not found.')
 
-  const { docs } = await payload.find({
-    collection: 'pdfeditrecords' as never,
-    where: { pdfedit: { equals: doc.id } } as never,
-    sort: 'order',
-    depth: 0,
-    pagination: false,
-    overrideAccess: true,
-  })
-  const records = (docs as unknown as Array<Record<string, unknown>>).map(
-    (r): W1PdfEditRecord => ({
-      id: String(r.id),
-      order: typeof r.order === 'number' ? r.order : 0,
-      ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
-      pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
-      blocks: Array.isArray(r.blocks) ? (r.blocks as W1PdfEditRecord['blocks']) : [],
-    }),
-  )
+  const records = await loadRecords(payload, doc.id)
 
   const format = request.nextUrl.searchParams.get('format') ?? 'csv'
   const base = typeof doc.slug === 'string' && doc.slug ? doc.slug : `pdfedit-${doc.id}`

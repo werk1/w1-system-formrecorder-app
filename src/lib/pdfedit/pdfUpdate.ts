@@ -1,19 +1,20 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import type { Payload } from 'payload'
-import { collectEdits, currentImageEdits, resetPageBlocks } from '@werk1/w1-system-pdfedit/host'
+import { collectEdits, currentImageEdits, markAppliedImageEdits, resetPageBlocks } from '@werk1/w1-system-pdfedit/host'
+import type { StoredImageEdit } from '@werk1/w1-system-pdfedit/host'
 import { applyImageEdits, applyTextEdits } from '@werk1/w1-system-pdfedit/pdf'
 import type { W1PdfFontProvider, W1PdfImageReplacement } from '@werk1/w1-system-pdfedit/pdf'
-import type { W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
+import type { W1FormTextModel } from '@werk1/w1-system-pdfedit/types'
 import { createJobDir, removeJobDir, renderPage } from '@/lib/flipbook/pdfConverter'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 import { createGoogleFontProvider } from './googleFonts'
 import { loadReplacement } from './imageFiles'
+import { findMedia, imageEditsKey, loadFlipbookOf, loadPdfedit, loadRecords, mediaPath, serialize } from './context'
+import type { IdLike, MediaDoc } from './context'
 
 export const PDFEDIT_GENERATOR = 'pdfedit'
-
-type IdLike = string | number
 
 export type PdfUpdateAction = { type: 'apply' } | { type: 'restore'; pageIndex: number } | { type: 'restoreAll' }
 
@@ -40,36 +41,12 @@ export class PdfUpdateError extends Error {
   }
 }
 
-type MediaDoc = { id: IdLike; filename?: unknown }
-type PdfeditDoc = {
-  id: IdLike
-  flipbook?: unknown
-  originalPdf?: unknown
-  editedPdf?: unknown
-  editedPages?: Array<{ image?: unknown }> | null
-  imageEdits?: unknown
-}
-type FlipbookDoc = {
-  id: IdLike
-  publishedSourcePdf?: unknown
-  publishedRevision?: unknown
-  overrideSource?: unknown
-  textModel?: unknown
-  pages?: Array<{ width?: unknown; height?: unknown }> | null
-}
-
+// In-process guard: a second update of the same document is refused while one runs.
+// Several app instances would need a lock in the database.
 const busy = new Set<string>()
 
-const mediaDir = (payload: Payload): string => {
-  const dir = payload.collections.media?.config?.upload?.staticDir
-  if (!dir) throw new Error('media collection has no upload.staticDir')
-  return dir
-}
-
-const readMedia = (payload: Payload, id: IdLike) =>
-  payload.findByID({ collection: 'media', id, depth: 0, overrideAccess: true }) as Promise<MediaDoc>
-
-const createPdfMedia = async (payload: Payload, params: { filePath: string; alt: string; pdfeditId: IdLike; revision: string }) =>
+/** A generated media file of this pdfedit (backup, updated PDF, page preview). */
+const createGeneratedMedia = async (payload: Payload, params: { filePath: string; alt: string; pdfeditId: IdLike; revision: string }) =>
   (await payload.create({
     collection: 'media',
     data: { alt: params.alt, generatedBy: PDFEDIT_GENERATOR, generatedFor: String(params.pdfeditId), generatedRevision: params.revision } as never,
@@ -78,11 +55,12 @@ const createPdfMedia = async (payload: Payload, params: { filePath: string; alt:
   })) as MediaDoc
 
 /**
- * Writes the edited record texts into the PDF and recomputes the previews of
- * the changed pages. The original PDF (the flipbook source) is never touched:
- * a backup copy is made on first use, and every run starts from it, so runs
- * never stack. A `restore` first resets the texts of one page to the source
- * and then runs the same update — that page returns to the original.
+ * Writes the edited record texts and the image edits into the PDF and
+ * recomputes the previews of the changed pages. The original PDF (the
+ * flipbook source) is never touched: a backup copy is made on first use, and
+ * every run starts from it, so runs never stack. A `restore` writes the PDF
+ * without the texts and images of one page (`restoreAll`: of all pages); the
+ * records and image edits are reset only once that PDF exists.
  */
 export async function updatePdfedit(
   payload: Payload,
@@ -96,77 +74,35 @@ export async function updatePdfedit(
   const createdIds: IdLike[] = []
   let jobDir: string | null = null
   try {
-    const doc = (await payload
-      .findByID({ collection: 'pdfedits' as never, id: pdfeditId, depth: 0, overrideAccess: true })
-      .catch(() => null)) as PdfeditDoc | null
+    const doc = await loadPdfedit(payload, pdfeditId)
     if (!doc) throw new PdfUpdateError('NOT_FOUND', 'Pdfedit nicht gefunden.')
-    const flipbookId = relationId(doc.flipbook)
-    const flipbook = flipbookId
-      ? ((await payload.findByID({ collection: 'flipbooks' as never, id: flipbookId, depth: 0, overrideAccess: true }).catch(() => null)) as FlipbookDoc | null)
-      : null
+    const flipbook = await loadFlipbookOf(payload, doc)
     const revision = typeof flipbook?.publishedRevision === 'string' ? flipbook.publishedRevision : null
     const sourceId = relationId(flipbook?.publishedSourcePdf)
     if (!flipbook || !revision || !sourceId) throw new PdfUpdateError('NOT_READY', 'Das Flipbook ist nicht konvertiert.')
     const model = flipbook.textModel as W1FormTextModel | null
     if (!model || !Array.isArray(model.pages)) throw new PdfUpdateError('NO_TEXT_MODEL', 'Das Dokument hat kein Textmodell.')
 
-    const { docs } = await payload.find({
-      collection: 'pdfeditrecords' as never,
-      where: { pdfedit: { equals: doc.id } } as never,
-      sort: 'order',
-      depth: 0,
-      pagination: false,
-      overrideAccess: true,
-    })
-    let records: W1PdfEditRecord[] = (docs as unknown as Array<Record<string, unknown>>).map((r) => ({
-      id: String(r.id),
-      order: typeof r.order === 'number' ? r.order : 0,
-      ...(typeof r.name === 'string' && r.name ? { name: r.name } : {}),
-      pageIndex: typeof r.pageIndex === 'number' ? r.pageIndex : undefined,
-      blocks: Array.isArray(r.blocks) ? (r.blocks as W1PdfEditRecord['blocks']) : [],
-    }))
-
-    const resetRecordIds: string[] = []
-    if (action.type === 'restore' || action.type === 'restoreAll') {
-      const changed =
-        action.type === 'restore'
-          ? resetPageBlocks(model, records, action.pageIndex)
-          : resetPageBlocks(model, records)
-      for (const record of changed) {
-        await payload.update({
-          collection: 'pdfeditrecords' as never,
-          id: record.id,
-          data: { blocks: record.blocks } as never,
-          overrideAccess: true,
-        })
-        resetRecordIds.push(record.id)
-      }
-      records = records.map((r) => changed.find((c) => c.id === r.id) ?? r)
-    }
-
-    // Image replacements of the current revision; a page restore drops those of that page.
-    let imageEdits = currentImageEdits(doc.imageEdits, revision)
+    // A restore resets texts and image edits — in memory first, stored only after the PDF was written.
+    const storedRecords = await loadRecords(payload, doc.id)
+    const resetRecords =
+      action.type === 'restore' ? resetPageBlocks(model, storedRecords, action.pageIndex) : action.type === 'restoreAll' ? resetPageBlocks(model, storedRecords) : []
+    const records = storedRecords.map((r) => resetRecords.find((c) => c.id === r.id) ?? r)
     const droppedByRestore = (e: { pageIndex: number }) => action.type === 'restoreAll' || (action.type === 'restore' && e.pageIndex === action.pageIndex)
-    if (imageEdits.some(droppedByRestore)) {
-      imageEdits = imageEdits.filter((e) => !droppedByRestore(e))
-      await payload.update({ collection: 'pdfedits' as never, id: doc.id, data: { imageEdits } as never, overrideAccess: true })
-    }
+    const imageEdits = currentImageEdits(doc.imageEdits, revision).filter((e) => !droppedByRestore(e))
 
-    // The flipbook source file is the pristine original; keep a backup copy once.
-    const source = await readMedia(payload, sourceId)
-    if (typeof source.filename !== 'string' || !source.filename) throw new PdfUpdateError('FAILED', 'Die Quell-PDF-Datei fehlt.')
-    const sourcePath = path.join(mediaDir(payload), source.filename)
-    let originalBackupId = relationId(doc.originalPdf)
-    const backupRevision = originalBackupId
-      ? ((await payload.findByID({ collection: 'media', id: originalBackupId, depth: 0, overrideAccess: true }).catch(() => null)) as { generatedRevision?: unknown } | null)?.generatedRevision
-      : null
-    if (!originalBackupId || backupRevision !== revision) {
-      const created = await createPdfMedia(payload, { filePath: sourcePath, alt: 'PDF-Original (Sicherung)', pdfeditId, revision })
-      if (originalBackupId) await deleteMediaByIds(payload, [originalBackupId])
-      originalBackupId = String(created.id)
+    // The flipbook source file is the pristine original; keep a backup copy once per revision.
+    const sourcePath = mediaPath(payload, await findMedia(payload, sourceId))
+    if (!sourcePath) throw new PdfUpdateError('FAILED', 'Die Quell-PDF-Datei fehlt.')
+    const previousBackupId = relationId(doc.originalPdf)
+    let backup = previousBackupId ? await findMedia(payload, previousBackupId) : null
+    if (!backup || backup.generatedRevision !== revision || !mediaPath(payload, backup)) {
+      backup = await createGeneratedMedia(payload, { filePath: sourcePath, alt: 'PDF-Original (Sicherung)', pdfeditId, revision })
+      if (previousBackupId) await deleteMediaByIds(payload, [previousBackupId])
     }
-    const backup = await readMedia(payload, originalBackupId)
-    const original = await fs.readFile(path.join(mediaDir(payload), String(backup.filename)))
+    const backupPath = mediaPath(payload, backup)
+    if (!backupPath) throw new PdfUpdateError('FAILED', 'Die Sicherung des Original-PDFs fehlt.')
+    const original = new Uint8Array(await fs.readFile(backupPath))
 
     // Images first (they work on the original's paint operators), then the texts on top of that result.
     const skippedImages: PdfUpdateResult['skippedImages'] = []
@@ -181,24 +117,25 @@ export async function updatePdfedit(
       else skippedImages.push({ imageId: loaded.imageId, reason: loaded.reason })
     }
     const imageResult = replacements.length
-      ? await applyImageEdits(new Uint8Array(original), replacements)
-      : { bytes: new Uint8Array(original), applied: [] as string[], skipped: [], warnings: [] as string[] }
+      ? await applyImageEdits(original, replacements)
+      : { bytes: original, applied: [] as string[], skipped: [], warnings: [] as string[] }
     skippedImages.push(...imageResult.skipped.map((s) => ({ imageId: s.imageId, reason: s.reason })))
     const appliedImageSet = new Set(imageResult.applied)
-    const imagePages = replacements.filter((r) => appliedImageSet.has(r.imageId)).map((r) => r.pageIndex)
+    const writtenImageEdits: StoredImageEdit[] = imageEdits.filter((e) => appliedImageSet.has(e.imageId))
 
     const edits = collectEdits(model, records)
     const result = await applyTextEdits(imageResult.bytes, edits, { fontProvider: options.fontProvider })
     result.warnings.unshift(...imageResult.warnings)
     const appliedSet = new Set(result.applied)
     const editedPageIndexes = [
-      ...new Set([...edits.filter((e) => appliedSet.has(e.blockId)).map((e) => e.pageIndex), ...imagePages]),
+      ...new Set([...edits.filter((e) => appliedSet.has(e.blockId)).map((e) => e.pageIndex), ...writtenImageEdits.map((e) => e.pageIndex)]),
     ].sort((a, b) => a - b)
 
     // Previous generated edited files are replaced after the new ones exist.
+    const previousEditedPdf = relationId(doc.editedPdf)
     const previousIds: IdLike[] = [
-      ...(relationId(doc.editedPdf) ? [relationId(doc.editedPdf) as IdLike] : []),
-      ...((doc.editedPages ?? []).map((p) => relationId(p.image)).filter((v): v is string => Boolean(v))),
+      ...(previousEditedPdf ? [previousEditedPdf] : []),
+      ...(doc.editedPages ?? []).map((p) => relationId(p.image)).filter((v): v is string => Boolean(v)),
     ]
 
     let editedPdfId: IdLike | null = null
@@ -207,40 +144,37 @@ export async function updatePdfedit(
       jobDir = await createJobDir()
       const editedPath = path.join(jobDir, `pdfedit-${pdfeditId}-edited.pdf`)
       await fs.writeFile(editedPath, result.bytes)
-      const editedMedia = await createPdfMedia(payload, { filePath: editedPath, alt: 'PDF (aktualisiert)', pdfeditId, revision })
+      const editedMedia = await createGeneratedMedia(payload, { filePath: editedPath, alt: 'PDF (aktualisiert)', pdfeditId, revision })
       createdIds.push(editedMedia.id)
       editedPdfId = editedMedia.id
       for (const pageIndex of editedPageIndexes) {
-        const rendered = await renderPage(path.join(jobDir, `pdfedit-${pdfeditId}-edited.pdf`), pageIndex + 1, jobDir)
+        const rendered = await renderPage(editedPath, pageIndex + 1, jobDir)
         const target = path.join(jobDir, `pdfedit-${pdfeditId}-p${String(pageIndex + 1).padStart(4, '0')}.png`)
         await fs.rename(rendered.filePath, target)
-        const image = (await payload.create({
-          collection: 'media',
-          data: {
-            alt: `Seite ${pageIndex + 1} (aktualisiert)`,
-            generatedBy: PDFEDIT_GENERATOR,
-            generatedFor: String(pdfeditId),
-            generatedRevision: revision,
-          } as never,
-          filePath: target,
-          overrideAccess: true,
-        })) as MediaDoc
+        const image = await createGeneratedMedia(payload, { filePath: target, alt: `Seite ${pageIndex + 1} (aktualisiert)`, pdfeditId, revision })
         createdIds.push(image.id)
         editedPages.push({ pageIndex, image: image.id, width: rendered.width, height: rendered.height })
       }
     }
 
-    await payload.update({
-      collection: 'pdfedits' as never,
-      id: pdfeditId,
-      data: {
-        originalPdf: originalBackupId,
-        editedPdf: editedPdfId,
-        editedPages,
-        editedAt: editedPageIndexes.length > 0 ? new Date().toISOString() : null,
-        editedRevision: editedPageIndexes.length > 0 ? revision : null,
-      } as never,
-      overrideAccess: true,
+    // The PDF exists: store it, and mark the image edits it contains. The edits are read
+    // again under the image-edit lock, so a save made during this update is kept (pending).
+    await serialize(imageEditsKey(doc.id), async () => {
+      const fresh = await loadPdfedit(payload, doc.id)
+      const stored = currentImageEdits(fresh?.imageEdits, revision).filter((e) => !droppedByRestore(e))
+      await payload.update({
+        collection: 'pdfedits' as never,
+        id: doc.id,
+        data: {
+          originalPdf: backup.id,
+          editedPdf: editedPdfId,
+          editedPages,
+          editedAt: editedPageIndexes.length > 0 ? new Date().toISOString() : null,
+          editedRevision: editedPageIndexes.length > 0 ? revision : null,
+          imageEdits: markAppliedImageEdits(stored, writtenImageEdits),
+        } as never,
+        overrideAccess: true,
+      })
     })
     // Mirror the updated pages onto the flipbook so the reader shows them
     // (module-neutral `pageOverrides`/`pdfOverride`). A pdfedit without edits
@@ -251,7 +185,7 @@ export async function updatePdfedit(
         collection: 'flipbooks' as never,
         id: flipbook.id,
         data: {
-          pageOverrides: editedPages.map((p) => ({ pageIndex: p.pageIndex, image: p.image, width: p.width, height: p.height })),
+          pageOverrides: editedPages,
           pdfOverride: editedPdfId,
           overrideRevision: hasEdits ? revision : null,
           overrideSource: hasEdits ? String(pdfeditId) : null,
@@ -262,6 +196,13 @@ export async function updatePdfedit(
     }
     createdIds.length = 0
     await deleteMediaByIds(payload, previousIds)
+
+    // Restored texts go back to the records last: the PDF without them is stored by now.
+    const resetRecordIds: string[] = []
+    for (const record of resetRecords) {
+      await payload.update({ collection: 'pdfeditrecords' as never, id: record.id, data: { blocks: record.blocks } as never, overrideAccess: true })
+      resetRecordIds.push(record.id)
+    }
 
     return {
       applied: result.applied,

@@ -1,14 +1,13 @@
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
-import path from 'path'
 import type { Payload } from 'payload'
 import { buildManifest, chunkPdf, extractPdfData } from '@werk1/w1-system-flipbook/pdf/server'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
 import { relationId } from '@/lib/flipbook/payloadFlipbookConversion'
 import { PDFEDIT_GENERATOR } from './pdfUpdate'
 import { retryWriteConflict } from './retryWrite'
-
-type IdLike = string | number
+import { findMedia, mediaPath } from './context'
+import type { IdLike, MediaDoc } from './context'
 
 type PdfeditLike = {
   id: IdLike
@@ -16,8 +15,6 @@ type PdfeditLike = {
   manifestPdf?: unknown
   manifestMedia?: unknown
 }
-
-type MediaDoc = { id: IdLike; filename?: unknown; url?: unknown }
 
 const inflight = new Map<string, Promise<string | null>>()
 
@@ -52,13 +49,11 @@ async function build(
   revision: string,
   pageLabels: string[],
 ): Promise<string | null> {
-  const staticDir = payload.collections.media?.config?.upload?.staticDir
-  if (!staticDir) return null
   const createdIds: IdLike[] = []
   try {
-    const pdfMedia = (await payload.findByID({ collection: 'media', id: readPdfId, depth: 0, overrideAccess: true })) as MediaDoc
-    if (typeof pdfMedia.filename !== 'string' || !pdfMedia.filename) return null
-    const filePath = path.join(staticDir, pdfMedia.filename)
+    const pdfMedia = await findMedia(payload, readPdfId)
+    const filePath = mediaPath(payload, pdfMedia)
+    if (!pdfMedia || !filePath) return null
     const bytes = await fs.readFile(filePath)
     const sha = sha256(bytes)
     const extracted = await extractPdfData(filePath)
@@ -121,8 +116,11 @@ async function build(
 
 /**
  * URL of the PDF.js manifest (text layer, links) of the PDF the reader shows.
- * Built on first use and rebuilt when that PDF changes (an update replaces the
- * edited PDF). Non-fatal: without a manifest the reader works without text
+ * Built on first use (awaited) and rebuilt when that PDF changes (an update
+ * replaces the edited PDF): the rebuild runs in the background and returns
+ * `null` meanwhile, so loading the editor after an update does not wait for
+ * chunking and extraction, and the reader never gets the text layer of the
+ * previous PDF. Non-fatal: without a manifest the reader works without text
  * selection and PDF links.
  */
 export async function ensureReadManifest(
@@ -135,9 +133,10 @@ export async function ensureReadManifest(
   const current = typeof pdfedit.manifestUrl === 'string' && pdfedit.manifestUrl ? pdfedit.manifestUrl : null
   if (current && relationId(pdfedit.manifestPdf) === readPdfId) return current
   const key = String(pdfedit.id)
-  const running = inflight.get(key)
-  if (running) return running
-  const job = build(payload, pdfedit, readPdfId, revision, pageLabels).finally(() => inflight.delete(key))
-  inflight.set(key, job)
-  return job
+  let job = inflight.get(key)
+  if (!job) {
+    job = build(payload, pdfedit, readPdfId, revision, pageLabels).finally(() => inflight.delete(key))
+    inflight.set(key, job)
+  }
+  return current ? null : job
 }
