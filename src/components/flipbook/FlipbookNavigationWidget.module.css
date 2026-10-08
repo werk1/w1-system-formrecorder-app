@@ -18,21 +18,7 @@
   --w1-widget-padding: 3px;
 }
 
-/* Widget tokens from the app palette (the area runs with theme="light";
-   dark comes from the palette). Three classes outrank the widget theme rules. */
-.area.area.area {
-  --w1-widget-primary: var(--flipbook-app-primary, #34322e);
-  --w1-widget-primary-strong: var(--flipbook-app-primary-strong, #1f1e1c);
-  --w1-widget-primary-text: var(--flipbook-app-primary-text, #ffffff);
-  --w1-widget-focus: var(--flipbook-app-focus, rgba(31, 111, 235, 0.3));
-  --w1-widget-foreground: var(--flipbook-app-text, #1f1e1c);
-  --w1-widget-muted: var(--flipbook-app-muted, #6b675f);
-  --w1-widget-border: var(--flipbook-app-panel-border, rgba(45, 57, 78, 0.1));
-  --w1-widget-shadow: 0 8px 22px var(--flipbook-app-panel-shadow, rgba(36, 53, 91, 0.09));
-  --w1-widget-search-gradient: var(--flipbook-app-panel-gradient);
-  --w1-widget-search-bg: var(--flipbook-app-field-bg, rgba(255, 255, 255, 0.72));
-  --w1-widget-search-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
-}
+/* Widget tokens from the app palette: FlipbookWidgetTheme.module.css. */
 
 /* A compact panel that follows the pill shape of its controls. The shell's
    overflow clip would cut off the page popup, so it stays visible. */
@@ -42,6 +28,7 @@
   padding: 3px;
   overflow: visible;
   border-radius: 999px;
+  border-color: color-mix(in srgb, var(--flipbook-app-text, #1f1e1c) 20%, transparent);
 }
 
 .row {
@@ -147,15 +134,34 @@
 }
 
 .pageField {
-  min-width: 6.5rem;
   font-variant-numeric: tabular-nums;
 }
 
+/* Fixed page field: the value keeps a slot for three-digit pages instead of
+   following the number shown, so the field never changes its width while
+   paging. Slots in em of the field font (tabular figures, 600): "888" needs
+   about 2.07em, "888–888" about 4.69em; both round up for safety. */
+.triggerSingle,
+.triggerDouble {
+  --flipbook-page-slot: 2.3em;
+}
 
-/* Thumbnail strip toggle: a quiet round icon button in the palette primary,
-   like the top bar icons; while the strip is open it gets the soft secondary
+.triggerDouble {
+  --flipbook-page-slot: 5em;
+}
+
+.triggerSingle > :first-child,
+.triggerDouble > :first-child {
+  flex: 0 0 auto;
+  min-width: var(--flipbook-page-slot);
+  text-align: center;
+}
+
+
+/* Widget toggles: quiet round icon buttons in the palette primary,
+   like the top bar icons; active toggles get the soft secondary
    background and a secondary icon. */
-.stripToggle {
+.toolToggle {
   --w1-button-neutral-ghost-bg: transparent;
   --w1-button-neutral-ghost-color: var(--w1-flipbook-control-text, #1c1b1a);
   --w1-button-neutral-ghost-hover-bg: transparent;
@@ -166,20 +172,23 @@
   --w1-icon-size-m: 24px;
 }
 
-.row .stripToggle.stripToggle {
+.row .toolToggle.toolToggle {
   flex: 0 0 43px;
   width: 43px;
   min-width: 43px;
   height: 43px;
   min-height: 43px;
-  margin-inline-start: 10px;
   padding: 0;
   border: 0;
   border-radius: 999px;
 }
 
+.row .stripToggle {
+  margin-inline-end: 10px;
+}
+
 /* W1Button's hover rule outranks its pressed rule. */
-.row .stripToggle.stripToggle[aria-pressed='true']:hover {
+.row .toolToggle.toolToggle[aria-pressed='true']:hover {
   background: var(--w1-flipbook-control-hover, #e6e4df);
   color: var(--w1-flipbook-accent, #1c1b1a);
 }
@@ -211,6 +220,10 @@
 /* Fills the end column, sits on the stage colour and keeps clear of the
    screen edge (safe areas), like the rail it stands in for. */
 .areaVertical.areaVertical {
+  /* One width for arrows and page field. 48px (the horizontal arrows are
+     43px): the field holds three digits at 16px (about 33px) plus its 5px
+     inline padding and 1px border on each side. */
+  --flipbook-nav-column-width: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,14 +244,22 @@
   flex-wrap: nowrap;
 }
 
-/* Page field: number on top, chevron below it. */
+.rowVertical .round {
+  flex: 0 0 var(--flipbook-nav-column-width);
+  width: var(--flipbook-nav-column-width);
+  height: var(--flipbook-nav-column-width);
+}
+
+/* Page field: number on top, chevron below it, as wide as the arrows. */
 .pagePillVertical.pagePillVertical {
+  box-sizing: border-box;
+  width: var(--flipbook-nav-column-width);
   min-height: 0;
   padding: 0;
   border-radius: 22px;
-  --w1-field-size-m-font-size: 13px;
-  --w1-field-size-m-min-height: 0px;
-  --w1-field-padding-m-block: 8px;
+  --w1-field-size-m-font-size: 16px;
+  --w1-field-size-m-min-height: 76px;
+  --w1-field-padding-m-block: 10px;
   --w1-field-padding-m-inline: 5px;
   --w1-field-control-gap: 3px;
   --w1-field-select-popover-min-width: 5.5rem;
@@ -248,14 +269,38 @@
 }
 
 .pageFieldVertical {
-  min-width: 43px;
+  width: 100%;
   font-variant-numeric: tabular-nums;
 }
 
 .triggerVertical.triggerVertical {
   flex-direction: column;
   justify-content: center;
+  /* More room above the digits than below the chevron: the thin chevron
+     sits inside its icon box, so equal padding reads as less space on top. */
+  padding-top: 15px;
+  padding-bottom: 7px;
   text-align: center;
+}
+
+.pageRange {
+  display: inline-flex;
+  align-items: center;
+}
+
+.triggerVertical .pageRange {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 18px;
+}
+
+.triggerVertical .rangeSeparator {
+  width: 14px;
+  height: 1px;
+  font-size: 0;
+  border-top: 1px solid currentColor;
+  opacity: 0.55;
 }
 
 /* The list opens towards the pages, centred on the field. */

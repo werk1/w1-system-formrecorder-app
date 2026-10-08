@@ -27,6 +27,9 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     searchPage: (page) => `S. ${page}`,
     searchCopy: 'Kopieren',
     searchCopied: 'Kopiert',
+    textSelect: 'Text auswählen',
+    exitTextSelect: 'Textauswahl beenden',
+    pdfLinkPage: (page) => `Zu Seite ${page}`,
   },
   en: {
     previous: 'Previous page',
@@ -54,6 +57,9 @@ const LABELS: Record<'de' | 'en', W1FlipbookLabels> = {
     searchPage: (page) => `p. ${page}`,
     searchCopy: 'Copy',
     searchCopied: 'Copied',
+    textSelect: 'Select text',
+    exitTextSelect: 'Stop selecting text',
+    pdfLinkPage: (page) => `Go to page ${page}`,
   },
 }
 
@@ -77,4 +83,46 @@ export function createFlipbookLabels(locale: string, options: FlipbookLabelOptio
   const labels = locale === 'de' ? LABELS.de : LABELS.en
   if (options.compactCounter) return { ...labels, counter: counterWith('') }
   return options.pageWord === undefined ? labels : { ...labels, counter: counterWith(options.pageWord) }
+}
+
+/** Texts of the reader's search panel (FlipbookSearchPanel); the viewer labels cover the rest. */
+export interface FlipbookSearchPanelLabels {
+  open: string
+  close: string
+  collapse: string
+  expand: string
+  previousHit: string
+  nextHit: string
+  minChars: (count: number) => string
+  pending: string
+  hits: (count: number) => string
+}
+
+const SEARCH_PANEL_LABELS: Record<'de' | 'en', FlipbookSearchPanelLabels> = {
+  de: {
+    open: 'Suche öffnen',
+    close: 'Suche schließen',
+    collapse: 'Ergebnisse einklappen',
+    expand: 'Ergebnisse anzeigen',
+    previousHit: 'Vorheriger Treffer',
+    nextHit: 'Nächster Treffer',
+    minChars: (count) => `Mindestens ${count} Zeichen eingeben.`,
+    pending: 'Suche läuft …',
+    hits: (count) => (count === 1 ? '1 Treffer' : `${count} Treffer`),
+  },
+  en: {
+    open: 'Open search',
+    close: 'Close search',
+    collapse: 'Collapse results',
+    expand: 'Show results',
+    previousHit: 'Previous result',
+    nextHit: 'Next result',
+    minChars: (count) => `Type at least ${count} characters.`,
+    pending: 'Searching …',
+    hits: (count) => (count === 1 ? '1 result' : `${count} results`),
+  },
+}
+
+export function createFlipbookSearchPanelLabels(locale: string): FlipbookSearchPanelLabels {
+  return locale === 'de' ? SEARCH_PANEL_LABELS.de : SEARCH_PANEL_LABELS.en
 }

@@ -1,7 +1,7 @@
 /*
- * Phone-landscape start column: pictogram on top, icon buttons at the bottom
+ * Phone- and tablet-landscape start column: pictogram on top, icon buttons at the bottom
  * and the page counter as a fraction below them. Width is a device token (--flipbook-side-bar-width,
- * set in the PL section of FlipbookReader.module.css).
+ * set in the PL/TL section of FlipbookReader.module.css).
  */
 .sideChrome {
   display: flex;

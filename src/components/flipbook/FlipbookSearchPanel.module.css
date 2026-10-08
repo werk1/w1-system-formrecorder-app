@@ -1,0 +1,375 @@
+/*
+ * Reader search panel (FlipbookSearchPanel): widget search field and result
+ * list from w1-system-widgets, colours from the app palette
+ * (FlipbookWidgetTheme.module.css). Placements: desktop sidebar in the
+ * viewer's start column, sheet from the top (portrait), sheet from the right
+ * (landscape). Sheets sit in the viewer's search layer over the pages.
+ */
+
+/*
+ * Landscape: the search icon column beside the menu bar. It is a layout
+ * column of the reader, not an overlay, so the pages give it room. The
+ * magnifier on top is the head of the search field, which grows out of it to
+ * the right; below it the hit arrows and the fold toggle.
+ */
+.iconColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: calc(var(--flipbook-search-column-width, 56px) + env(safe-area-inset-left, 0px));
+  height: 100%;
+  padding: max(10px, env(safe-area-inset-top, 0px)) 0 max(10px, env(safe-area-inset-bottom, 0px));
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-right: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+/* Head of the field: the same circle as the buttons, but no control. */
+.columnHead {
+  display: grid;
+  place-items: center;
+  color: var(--w1-widget-muted);
+}
+
+.columnHead :global(.w1-widget-icon) {
+  width: 22px;
+  height: 22px;
+}
+
+/* Folded sidebar: icon column on the toolbar colour, like the top bar. */
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 56px;
+  height: 100%;
+  padding: 8px 0;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-right: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+/* A panel, not a Bento slot: no container sizing, no minimum height. The
+   search bar keeps the navigation widget's spacings (3px around its row,
+   6px between the controls); only the text field has its own.
+
+   The search surfaces stay quieter than the navigation widget: `tint: 0`
+   drops the tone tint the widget gradients derive from the primary, so they
+   turn neutral, and the field carries the toolbar colour instead of a
+   translucent white, which it needs once the sheet is folded away and only
+   the bar stands over the pages. */
+.area.area {
+  container-type: normal;
+  --w1-widget-min-height: 0;
+  --w1-widget-padding: 3px;
+  --w1-widget-padding-compact: 3px;
+  --w1-widget-tint: 0;
+  --w1-widget-search-bg: var(--w1-flipbook-toolbar, #ffffff);
+}
+
+/* The hits grow out from under the search bar: downwards from the top
+   sheet, from left to right in the landscape one. */
+@media (prefers-reduced-motion: no-preference) {
+  .sheet .body {
+    animation: searchResultsIn 180ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+  }
+
+  .column .body {
+    animation-name: searchResultsInX;
+  }
+}
+
+@keyframes searchResultsIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes searchResultsInX {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* The widget holds the search controls; the fold toggle stands beside it,
+   because it belongs to the panel, not to the search. */
+.barRow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Search field with the hit arrows beside it, built like the row of the
+   navigation widget: one 43px control height. */
+.head {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Same height as the round buttons beside it (43px plus the 1px border).
+   The gap keeps the hit arrows clear of the input's native clear button, so
+   stepping through the hits never wipes the query by accident. */
+.field.field {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 43px;
+  padding: 2px 14px 2px 16px;
+  gap: 10px;
+}
+
+/* Focus marks the field without shouting: a touch of the primary in the
+   hairline instead of the full colour. */
+.field.field:focus-within {
+  border-color: color-mix(in srgb, var(--w1-widget-primary) 35%, var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28)));
+}
+
+/* Previous / next hit beside the field; the row gap keeps them clear of the
+   field's clear button, so stepping never wipes the query. Quieter than the
+   navigation widget's page arrows: the same light circle as the fold toggle
+   instead of a filled primary disc, because the search is a side errand, not
+   the reader's main navigation. */
+.hitArrow.hitArrow {
+  flex: 0 0 43px;
+  box-sizing: border-box;
+  width: 43px;
+  height: 43px;
+  border: 1px solid var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  color: var(--w1-flipbook-control-text, #1c1b1a);
+}
+
+.hitArrow.hitArrow:hover {
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  color: var(--w1-flipbook-accent, #1c1b1a);
+}
+
+/* Ghosted at the ends of the list. */
+.hitArrow.hitArrow:disabled {
+  opacity: 0.38;
+  cursor: default;
+  color: var(--w1-flipbook-control-text, #1c1b1a);
+}
+
+/* The fold toggle is a round button built like the search field: the same
+   surface and hairline, so it reads on the sheet and on the bare pages once
+   the sheet is folded away. The surface never changes colour — hover and
+   press only speak through the icon, so a tap on a touch screen cannot leave
+   the button tinted. */
+.toolToggle.toolToggle {
+  flex: 0 0 43px;
+  box-sizing: border-box;
+  width: 43px;
+  min-width: 43px;
+  height: 43px;
+  min-height: 43px;
+  padding: 0;
+  border: 1px solid var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  border-radius: 999px;
+  --w1-button-neutral-ghost-bg: var(--w1-flipbook-toolbar, #ffffff);
+  --w1-button-neutral-ghost-color: var(--w1-flipbook-control-text, #1c1b1a);
+  --w1-button-neutral-ghost-hover-bg: var(--w1-flipbook-toolbar, #ffffff);
+  --w1-button-neutral-ghost-hover-color: var(--w1-flipbook-accent, #1c1b1a);
+  --w1-button-neutral-ghost-active-bg: var(--w1-flipbook-toolbar, #ffffff);
+  --w1-button-neutral-ghost-active-color: var(--w1-flipbook-accent, #1c1b1a);
+  /* The button's own states would clear the border colour, so the hairline
+     is pinned for every state. */
+  --w1-button-neutral-ghost-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  --w1-button-neutral-ghost-hover-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  --w1-button-neutral-ghost-active-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  --w1-button-focus-ring: 3px solid var(--w1-flipbook-focus-ring, #1a56db);
+  --w1-icon-size-m: 22px;
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 10px;
+}
+
+.note {
+  flex: none;
+  margin: 0 0 6px;
+  padding: 0 6px;
+  color: var(--w1-widget-muted);
+  font-size: 0.82rem;
+}
+
+/* The list takes the height that is left and scrolls inside; one rounded
+   card per hit on the sheet surface. */
+.results.results {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  overscroll-behavior: contain;
+}
+
+/* The sheet runs in the toolbar colour, which would swallow the translucent
+   card background, so the cards get a tinted surface of their own. The
+   arrow keeps clear of the card edge, and the page reference keeps clear of
+   the arrow. */
+.hit.hit {
+  padding: 12px 18px;
+  background: color-mix(in srgb, var(--flipbook-app-text, #1f1e1c) 6%, transparent);
+}
+
+.hit.hit > :global(.w1-widget-icon) {
+  right: 18px;
+  bottom: 14px;
+}
+
+.hit.hit :global(.w1-widget-result-link__meta) {
+  padding-inline-end: 34px;
+}
+
+.hit.hit:hover {
+  background: color-mix(in srgb, var(--flipbook-app-text, #1f1e1c) 11%, transparent);
+}
+
+.hit.hit[aria-current='true'] {
+  background: var(--flipbook-app-secondary-soft, rgba(52, 50, 46, 0.16));
+}
+
+/* ---- Desktop sidebar ---------------------------------------------------- */
+
+.sidebar.sidebar {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 340px;
+  height: 100%;
+  padding: 12px;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  border-right: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+/* The list runs to the panel edge, so its scrollbar sits there instead of
+   against the cards; the cards keep their distance through the padding. */
+.sidebar .results {
+  margin-inline-end: -12px;
+  padding-inline-end: 12px;
+}
+
+
+/* ---- Sheets over the pages --------------------------------------------- */
+/* One sheet like the sidebar, attached to an edge of the stage and growing
+   from under the header: the search bar on top, the hit cards below. */
+
+.sheet.sheet {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: auto;
+  padding: 14px 16px 10px;
+  background: var(--w1-flipbook-toolbar, #ffffff);
+  box-shadow: 0 10px 24px var(--flipbook-app-panel-shadow, rgba(36, 53, 91, 0.12));
+}
+
+/* Frosted like the app's other floating surfaces (the page popup of the
+   navigation widget uses the same token and blur). Only where the browser
+   can blur the backdrop; elsewhere the sheet stays opaque. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sheet.sheet {
+    background: var(--flipbook-app-popover-bg, rgba(242, 243, 245, 0.94));
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+/* As in the sidebar: the scrollbar belongs at the sheet edge, while the
+   cards keep the same distance as on the left. */
+.sheet .results {
+  margin-inline-end: -16px;
+  padding-inline-end: 16px;
+}
+
+/* Portrait: grows down from under the header, full width; the pages below
+   stay in view. */
+.top.top {
+  top: 0;
+  right: 0;
+  left: 0;
+  max-height: min(100%, 72%);
+  border-bottom: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+/* Landscape: field and hits grow out of the icon column to the right, over
+   the full height. The column itself is a layout column beside this. */
+.column.column {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(360px, 100%);
+  /* Same top padding as the icon column, so the field sits on the line of
+     the magnifier it grows out of. */
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  border-right: 1px solid var(--w1-flipbook-border, #b9b5ad);
+}
+
+/* The magnifier of this field is the one in the icon column; the field's own
+   would be the second one in a row. */
+.column .field > :global(.w1-widget-icon) {
+  display: none;
+}
+
+.column .field.field {
+  padding-left: 14px;
+}
+
+/* Folded, the sheet shrinks to its search bar but keeps its surface: the
+   bar carries no backdrop of its own, so it needs the sheet behind it. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .column {
+    animation: searchSheetIn 180ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+  }
+}
+
+@keyframes searchSheetIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* The pill groups field and arrows, but carries no surface of its own: the
+   field and the round buttons bring their own, a second frame around them
+   would only add noise. */
+.bar.bar {
+  flex: 1 1 auto;
+  min-width: 0;
+  container-type: normal;
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  box-shadow: none;
+}
+

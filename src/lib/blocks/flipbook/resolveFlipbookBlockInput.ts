@@ -1,7 +1,7 @@
-import type { Payload } from 'payload'
-import type { W1FlipbookConfig, W1FlipbookInput, W1FlipbookPage } from '@werk1/w1-system-flipbook/types'
-import { mergeConfig } from '@werk1/w1-system-flipbook/config'
 import type { HybridPageResolveContext, NonArticlePageSection } from '@/lib/pages/types'
+import { mergeConfig } from '@werk1/w1-system-flipbook/config'
+import type { W1FlipbookConfig, W1FlipbookInput, W1FlipbookPage } from '@werk1/w1-system-flipbook/types'
+import type { Payload } from 'payload'
 import { FLIPBOOK_BOOLEAN_CONFIG_KEYS } from './config'
 import type { FlipbookSectionOverrides, ResolvedFlipbookBlockData } from './types'
 
@@ -34,10 +34,19 @@ export function mapFlipbookPage(entry: unknown, index: number): W1FlipbookPage |
   const height = num(item.height)
   if (!imageUrl || !width || !height) return null
 
-  const srcSetParts = SIZE_ORDER.flatMap(([name, fallbackWidth]) => {
+  const candidates = SIZE_ORDER.flatMap(([name, fallbackWidth]) => {
     const url = sizeUrl(name)
-    return url ? [`${url} ${num(asRec(sizes?.[name])?.width) ?? fallbackWidth}w`] : []
+    return url ? [{ url, width: num(asRec(sizes?.[name])?.width) ?? fallbackWidth }] : []
   })
+  // Sizes wider than the original are omitted by Payload (e.g. `xl` of a
+  // portrait page), so the original is the sharpest source when it is wider
+  // than every generated size.
+  const originalUrl = str(media.url)
+  const originalWidth = num(media.width)
+  if (originalUrl && originalWidth && candidates.every((c) => c.width < originalWidth)) {
+    candidates.push({ url: originalUrl, width: originalWidth })
+  }
+  const srcSetParts = candidates.map((c) => `${c.url} ${c.width}w`)
   const id = typeof media.id === 'string' || typeof media.id === 'number' ? String(media.id) : `page-${index}`
 
   return {
@@ -136,12 +145,22 @@ export function mapFlipbookToInput(
     .filter((page): page is W1FlipbookPage => page !== null)
   const slug = str(flipbook.slug)
   if (!slug || !pdfUrl || pages.length === 0) return null
+  // The manifest describes one PDF: the published revision's, or, while overrides are
+  // active, the one the overriding module built for exactly that `pdfOverride`.
+  const overrideDoc = asRec(flipbook.pdfOverride)
+  const pdfOverrideId = overrideDoc ? (overrideDoc.id != null ? String(overrideDoc.id) : null) : flipbook.pdfOverride != null ? String(flipbook.pdfOverride) : null
+  const manifestUrl = overridesActive
+    ? pdfOverrideId && str(flipbook.overrideManifestFor) === pdfOverrideId
+      ? str(flipbook.overrideManifestUrl)
+      : null
+    : str(flipbook.manifestUrl)
 
   return {
     slug,
     title: str(flipbook.title) ?? undefined,
     pdfUrl,
     pages,
+    ...(manifestUrl ? { manifestUrl } : {}),
     config: mergeConfig({ ...readDefaultConfig(flipbook.defaultConfig), ...overrides }),
   }
 }
@@ -179,11 +198,15 @@ export async function loadPublishedFlipbook(
 ): Promise<unknown | null> {
   const lookup = await payload.find({
     collection: 'flipbooks' as never,
-    where: { and: [{ slug: { equals: slug } }, { isPublished: { equals: true } }] } as never,
+    // Slugs are stored lowercase (beforeValidate); the search route matches the same way.
+    where: { and: [{ slug: { equals: slug.trim().toLowerCase() } }, { isPublished: { equals: true } }] } as never,
     depth: 2,
     limit: 1,
     overrideAccess: false,
     locale: locale as never,
+    // The server-only text/image models (often > 1 MB) are hidden by field
+    // access anyway; excluding them keeps them out of the database read.
+    select: { textModel: false, imageModel: false } as never,
   })
   return lookup.docs[0] ?? null
 }

@@ -40,23 +40,32 @@ function ToolButton({
 
 /**
  * Viewer controls as W1 UI icon buttons (w1-system-ui `W1Button` + Lucide
- * icons): PDF, thumbnails, single/double page, search, zoom out/in, fullscreen.
+ * icons): PDF, thumbnails, single/double page, search, text selection, zoom out/in, fullscreen.
  */
 export function FlipbookToolbar({
   controls,
   orientation = 'horizontal',
   showThumbnails = true,
+  showZoom = true,
   showPdf = false,
+  showSearch = true,
+  onSearch,
 }: {
   controls: W1FlipbookToolbarControls
   /** `vertical` stacks the buttons (icon column of the side arrangement). */
   orientation?: 'horizontal' | 'vertical'
   /** Thumbnail toggle; off where the navigation widget carries it. */
   showThumbnails?: boolean
+  /** Zoom toggle; off where the navigation widget carries it. */
+  showZoom?: boolean
   /** PDF link as an icon button (top bar). */
   showPdf?: boolean
+  /** Search button; off where the search sidebar carries it (desktop). */
+  showSearch?: boolean
+  /** Search button action (reader search sheet); default `controls.search.toggle`. */
+  onSearch?: () => void
 }) {
-  const { zoom, fullscreen, thumbnails, spread, search, labels, pdf } = controls
+  const { zoom, fullscreen, thumbnails, spread, search, textSelect, labels, pdf } = controls
   return (
     <div className={orientation === 'vertical' ? `${styles.tools} ${styles.toolsVertical}` : styles.tools}>
       {showPdf && (
@@ -86,10 +95,18 @@ export function FlipbookToolbar({
           onClick={spread.toggle}
         />
       )}
-      {search.enabled && (
-        <ToolButton icon="text_search" label={labels.search ?? 'Search'} onClick={search.toggle} pressed={search.open} />
+      {showSearch && search.enabled && (
+        <ToolButton icon="text_search" label={labels.search ?? 'Search'} onClick={onSearch ?? search.toggle} pressed={search.open} />
       )}
-      {zoom.enabled && (
+      {textSelect.enabled && (
+        <ToolButton
+          icon="text_select"
+          label={textSelect.active ? (labels.exitTextSelect ?? 'Stop selecting text') : (labels.textSelect ?? 'Select text')}
+          onClick={textSelect.toggle}
+          pressed={textSelect.active}
+        />
+      )}
+      {showZoom && zoom.enabled && (
         // One zoom step: the magnifier zooms in, and out again while zoomed.
         <ToolButton
           icon={zoom.active ? 'zoom_out' : 'zoom_in'}
@@ -113,11 +130,19 @@ export function FlipbookToolbar({
 }
 
 /** Slim top bar with only the viewer controls (deep link, page sections). */
-export function FlipbookToolbarBar({ controls }: { controls: W1FlipbookToolbarControls }) {
+export function FlipbookToolbarBar({
+  controls,
+  showSearch,
+  onSearch,
+}: {
+  controls: W1FlipbookToolbarControls
+  showSearch?: boolean
+  onSearch?: () => void
+}) {
   return (
     <div className={styles.bar}>
-      {/* The thumbnail toggle sits in the navigation widget below. */}
-      <FlipbookToolbar controls={controls} showThumbnails={false} showPdf />
+      {/* Zoom and thumbnails sit in the navigation widget below. */}
+      <FlipbookToolbar controls={controls} showThumbnails={false} showZoom={false} showPdf showSearch={showSearch} onSearch={onSearch} />
     </div>
   )
 }

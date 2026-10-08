@@ -18,9 +18,10 @@ const VERTICAL_THUMB_MAX_HEIGHT_PX = 200
 
 const pageThumb = (page: W1FlipbookPage) => page.thumbnailUrl ?? page.imageUrl
 
-function TileContent({ item }: { item: W1FlipbookThumbnailItem }) {
+function TileContent({ item, onPrefetch }: { item: W1FlipbookThumbnailItem; onPrefetch?: () => void }) {
+  // Pointer on a tile: its pages start loading before the selection.
   return (
-    <span className={styles.tile}>
+    <span className={styles.tile} onPointerEnter={onPrefetch} onPointerDown={onPrefetch}>
       {item.visualPages.map((page) => (
         <span key={page.id} className={styles.cell}>
           <img src={pageThumb(page)} alt="" loading="lazy" decoding="async" />
@@ -36,7 +37,7 @@ function TileContent({ item }: { item: W1FlipbookThumbnailItem }) {
  * tiles compose their two page thumbnails; the flipbook package itself has no
  * carousel dependency (`renderThumbnails` slot).
  */
-export function FlipbookThumbnailRail({ items, activeIndex, onSelect, label, orientation }: W1FlipbookThumbnailStripProps) {
+export function FlipbookThumbnailRail({ items, activeIndex, onSelect, onPrefetch, label, orientation }: W1FlipbookThumbnailStripProps) {
   const vertical = orientation === 'vertical'
   const deviceInfo = useBoundStore((state) => state.device)
   // Free strip until device detection is ready, so the first render is deterministic.
@@ -74,7 +75,7 @@ export function FlipbookThumbnailRail({ items, activeIndex, onSelect, label, ori
           : { thumbFit: 'fitHeight' as const, thumbHeightPx: THUMB_HEIGHT_PX })}
         followSelection
         revealAlign="nearest"
-        renderItem={(_, { index }) => <TileContent item={items[index]} />}
+        renderItem={(_, { index }) => <TileContent item={items[index]} onPrefetch={onPrefetch && (() => onPrefetch(index))} />}
         gapPx={8}
         sidePaddingPx={12}
         thumbRadiusPx={4}

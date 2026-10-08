@@ -1,6 +1,6 @@
-import type { Payload } from 'payload'
 import { buildSearchIndex, searchIndex } from '@werk1/w1-system-pdfedit/export'
 import type { W1FormSearchIndex, W1FormTextModel, W1PdfEditRecord } from '@werk1/w1-system-pdfedit/types'
+import type { Payload } from 'payload'
 
 export type FlipbookSearchHit = {
   pageIndex: number
@@ -44,8 +44,6 @@ function modelForReader(model: W1FormTextModel, records: readonly W1PdfEditRecor
 }
 
 async function prepare(payload: Payload, flipbook: Rec): Promise<Prepared | null> {
-  const model = flipbook.textModel as W1FormTextModel | null
-  if (!model || !Array.isArray(model.pages)) return null
   const overridesActive = typeof flipbook.overrideRevision === 'string' && flipbook.overrideRevision === flipbook.publishedRevision
   const key = `${String(flipbook.id)}|${String(flipbook.publishedRevision)}|${overridesActive ? String(flipbook.updatedAt) : '-'}`
   const hit = cache.get(key)
@@ -55,10 +53,25 @@ async function prepare(payload: Payload, flipbook: Rec): Promise<Prepared | null
     return hit
   }
 
+  // The text model (often > 1 MB) is only read when the index is built.
+  const full = asRec(
+    await payload
+      .findByID({
+        collection: 'flipbooks' as never,
+        id: flipbook.id as string | number,
+        depth: 0,
+        overrideAccess: true,
+        select: { textModel: true, pageOverrides: true } as never,
+      })
+      .catch(() => null),
+  )
+  const model = full?.textModel as W1FormTextModel | null | undefined
+  if (!model || !Array.isArray(model.pages)) return null
+
   let source = model
   if (overridesActive) {
     const editedPages = new Set<number>(
-      (Array.isArray(flipbook.pageOverrides) ? flipbook.pageOverrides : []).flatMap((row) => {
+      (Array.isArray(full?.pageOverrides) ? full.pageOverrides : []).flatMap((row) => {
         const index = asRec(row)?.pageIndex
         return typeof index === 'number' ? [index] : []
       }),
@@ -117,6 +130,8 @@ export async function searchPublishedFlipbook(payload: Payload, slug: string, qu
     depth: 0,
     limit: 1,
     overrideAccess: true,
+    // Only what the index cache key needs; `prepare` loads the text model on a miss.
+    select: { publishedRevision: true, overrideRevision: true, updatedAt: true } as never,
   })
   const flipbook = asRec(found.docs[0])
   if (!flipbook) return null

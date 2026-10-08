@@ -85,7 +85,10 @@ generated apps with module `pdfedit` active.
   updated PDF of the published revision is shown) in the input.
 - Reader hook on `flipbooks` (module-neutral fields): `pageOverrides[]`
   (`pageIndex`, `image`, `width`, `height`), `pdfOverride`, `overrideRevision`,
-  `overrideSource`. `pdfUpdate.ts` mirrors the updated pages and PDF onto the
+  `overrideSource`, `overrideManifestUrl`, `overrideManifestFor`. The reader takes
+  `overrideManifestUrl` (text layer and links of the updated PDF) only while
+  `overrideManifestFor` names the current `pdfOverride`; without active overrides it
+  takes the conversion's `manifestUrl`. `pdfUpdate.ts` mirrors the updated pages and PDF onto the
   flipbook (and clears them again when the pdfedit has no edits left);
   `mapFlipbookToInput` (`src/lib/blocks/flipbook/`, from `flipbook-system`)
   substitutes them in the reader while `overrideRevision` equals
@@ -99,9 +102,12 @@ generated apps with module `pdfedit` active.
   `textStyles.ts` (adds block styles to documents converted before style
   extraction existed or with an older style revision), `readManifest.ts`
   (`ensureReadManifest`: PDF.js manifest — text layer, links — of the PDF the
-  reading view shows, i.e. the updated PDF when there is one, else the published
-  source; built on first use with `@werk1/w1-system-flipbook/pdf/server` (awaited),
-  rebuilt in the background when that PDF changes (`manifestUrl` is absent meanwhile); stored in the `pdfedits` fields `manifestUrl`,
+  reading view shows. Without an updated PDF that is the conversion's
+  `flipbooks.manifestUrl` (no copy; an own manifest of an earlier update is
+  released). For the updated PDF the pdfedit builds it itself with
+  `@werk1/w1-system-flipbook/pdf/server`, in the background — started right after
+  "PDF aktualisieren", `manifestUrl` is absent until it is done — and publishes it
+  to the flipbook as `overrideManifestUrl`/`overrideManifestFor`; stored in the `pdfedits` fields `manifestUrl`,
   `manifestPdf`, `manifestMedia`; artifacts carry `generatedBy: 'pdfedit'`),
   `retryWrite.ts` (repeats a write on a MongoDB write conflict). The conversion pipeline additionally runs
   `pdftohtml -xml -zoom 1 -i` (`extractStyleLayout`) and `applyTextStyles`.

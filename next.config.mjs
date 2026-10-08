@@ -131,8 +131,11 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Generated flipbook artifacts (pages, sizes, chunks, manifest) carry
+        // flipbook id and source hash in their name. The cache time must stay
+        // below W1_FLIPBOOK_RETENTION_HOURS (default 24 h, src/lib/flipbook/README.md).
         source: '/api/media/file/:file(fb-.*)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=3600' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=43200' }],
       },
     ]
   },

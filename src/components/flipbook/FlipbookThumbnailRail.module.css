@@ -9,13 +9,14 @@
   --w1-carouselblock-strip-focus-width: 3px;
 }
 
-/* Side arrangement: a column beside the pages (tile width + 2 × 8px). It
-   reaches the screen edge; the tiles stay clear of the notch / Dynamic Island
-   (right), the status bar and the home indicator. */
+/* Side arrangement: a column beside the pages (8px + tile width + 12px; the
+   wider end keeps a band of rail colour at the screen edge). It reaches the
+   screen edge; the tiles stay clear of the notch / Dynamic Island (right),
+   the status bar and the home indicator. */
 .railVertical {
   height: 100%;
   width: calc(var(--w1-flipbook-side-strip-width, 112px) + env(safe-area-inset-right, 0px));
-  padding: env(safe-area-inset-top, 0px) calc(8px + env(safe-area-inset-right, 0px))
+  padding: env(safe-area-inset-top, 0px) calc(12px + env(safe-area-inset-right, 0px))
     env(safe-area-inset-bottom, 0px) 8px;
   border-top: 0;
   border-left: 1px solid var(--w1-flipbook-border, #b9b5ad);

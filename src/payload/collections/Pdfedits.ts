@@ -98,8 +98,9 @@ export const Pdfedits: CollectionConfig = {
       },
     },
     {
-      // PDF.js manifest of the PDF the reader shows (text layer, links). Built
-      // lazily by `ensureReadManifest`; rebuilt when that PDF changes.
+      // PDF.js manifest of the updated PDF (text layer, links), built in the
+      // background by `ensureReadManifest` after an update and offered to the
+      // flipbook reader. Without an updated PDF the flipbook's own manifest is used.
       name: "manifestUrl",
       type: "text",
       admin: { readOnly: true, position: "sidebar" },

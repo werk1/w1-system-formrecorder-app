@@ -12,6 +12,9 @@ import { relationId } from '@/lib/flipbook/payloadFlipbookConversion'
 
 export type IdLike = string | number
 
+/** `generatedBy` of media this module creates (backup, updated PDF, previews, manifests). */
+export const PDFEDIT_GENERATOR = 'pdfedit'
+
 export type PdfeditDoc = {
   id: IdLike
   title?: unknown
@@ -33,6 +36,7 @@ export type FlipbookDoc = {
   slug?: unknown
   publishedSourcePdf?: unknown
   publishedRevision?: unknown
+  manifestUrl?: unknown
   overrideSource?: unknown
   textModel?: unknown
   imageModel?: unknown

@@ -123,7 +123,8 @@ export async function GET(request: NextRequest) {
   const editedPdfUrl = editedPdfId ? mediaFileUrl(media.get(String(editedPdfId))?.filename) : null
   // Text layer and links of the PDF the reader shows (non-fatal when missing).
   const manifestUrl = await ensureReadManifest(payload, doc, {
-    readPdfId: editedPdfId ? String(editedPdfId) : relationId(flipbook.publishedSourcePdf),
+    editedPdfId: editedPdfId ? String(editedPdfId) : null,
+    flipbook,
     revision: String(flipbook.publishedRevision),
     pageLabels: flipbookPages.map((p) => (typeof p.label === 'string' ? p.label : '')),
   })

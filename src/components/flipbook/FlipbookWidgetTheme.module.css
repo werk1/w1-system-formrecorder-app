@@ -1,0 +1,27 @@
+/*
+ * Widget tokens from the app palette for the widgets in the reader
+ * (navigation widget, search panel). The widget areas run with
+ * theme="light"; light and dark come from the palette (theme/palettes.css).
+ * Three classes outrank the widget theme rules (:where defaults and the
+ * data-widget-theme rules).
+ */
+.theme.theme.theme {
+  --w1-widget-primary: var(--flipbook-app-primary, #34322e);
+  --w1-widget-primary-strong: var(--flipbook-app-primary-strong, #1f1e1c);
+  --w1-widget-primary-text: var(--flipbook-app-primary-text, #ffffff);
+  --w1-widget-primary-soft: var(--flipbook-app-secondary-soft, rgba(52, 50, 46, 0.12));
+  --w1-widget-focus: var(--flipbook-app-focus, rgba(31, 111, 235, 0.3));
+  --w1-widget-foreground: var(--flipbook-app-text, #1f1e1c);
+  --w1-widget-muted: var(--flipbook-app-muted, #6b675f);
+  --w1-widget-border: var(--flipbook-app-panel-border, rgba(45, 57, 78, 0.1));
+  --w1-widget-shadow: 0 8px 22px var(--flipbook-app-panel-shadow, rgba(36, 53, 91, 0.09));
+  --w1-widget-search-gradient: var(--flipbook-app-panel-gradient);
+  --w1-widget-search-bg: var(--flipbook-app-field-bg, rgba(255, 255, 255, 0.72));
+  --w1-widget-search-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.28));
+  --w1-widget-control-bg: var(--flipbook-app-field-bg, rgba(255, 255, 255, 0.62));
+  --w1-widget-control-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.19));
+  --w1-widget-result-bg: var(--flipbook-app-field-bg, rgba(255, 255, 255, 0.58));
+  --w1-widget-result-frame-border: var(--flipbook-app-field-border, rgba(45, 57, 78, 0.16));
+  /* Native controls (caret, placeholder) follow the palette mode. */
+  color-scheme: light dark;
+}

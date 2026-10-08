@@ -6,7 +6,9 @@
  * Per-device tuning goes into the device sections below:
  *   :global(.w1-flipbook_devicePP)    phone portrait (all sizes)
  *   :global(.w1-flipbook_devicePL)    phone landscape (all sizes)
- *   :global(.w1-flipbook_devicePPSM)  / PPXL / PLSM / PLXL size variants
+ *   :global(.w1-flipbook_devicePPSM)  / PLSM size variants
+ *   :global(.w1-flipbook_deviceTP)    tablet portrait
+ *   :global(.w1-flipbook_deviceTL)    tablet landscape
  */
 /*
  * Safe areas (viewport-fit=cover): the reader keeps all four insets clear
@@ -81,20 +83,32 @@
   --w1-flipbook-status-height: 36px;
 }
 
-/* ---- Phone landscape (PL) --------------------------------------------- */
+/* ---- Phone landscape (PL) and tablet landscape (TL) ------------------- */
 /* Side arrangement: bar (pictogram, counter, icons at the bottom) | pages |
    vertical rail. No logo panel and no status bar, so the double spread
-   keeps its width. */
+   keeps its width. TL starts with the PL values. */
 
 /* Columns bleed to the screen edges; the side bar pads itself on the left,
    top and bottom, the rail on the right, top and bottom (safe areas). */
-.reader:global(.w1-flipbook_devicePL) {
+.reader:global(.w1-flipbook_devicePL),
+.reader:global(.w1-flipbook_deviceTL) {
   padding: 0;
 }
 
-.reader:global(.w1-flipbook_devicePL) .viewer {
+.reader:global(.w1-flipbook_devicePL) .viewer,
+.reader:global(.w1-flipbook_deviceTL) .viewer {
   --flipbook-side-bar-width: 64px;
   --flipbook-pictogram-size: 44px;
-  /* 128px tiles + 2 × 8px padding (FlipbookThumbnailRail VERTICAL_THUMB_WIDTH_PX). */
-  --w1-flipbook-side-strip-width: 144px;
+  /* 128px tiles + 8px start and 12px end padding (FlipbookThumbnailRail
+     VERTICAL_THUMB_WIDTH_PX, .railVertical). */
+  --w1-flipbook-side-strip-width: 148px;
+}
+
+/* ---- Tablet portrait (TP) --------------------------------------------- */
+/* Default structure (header, pages, navigation widget, horizontal rail open
+   from the start); opens one page at a time (FlipbookReader `defaultSpread`),
+   the spread toggle in the header switches to the double spread. */
+
+.reader:global(.w1-flipbook_deviceTP)[data-reader-chrome='header'] .viewer {
+  --w1-flipbook-status-height: 36px;
 }

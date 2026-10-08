@@ -11,7 +11,7 @@ System-Doku: `doc/w1-flipbook.md` (Datenfluss, Betrieb, Grenzen).
 
 | Datei | Schicht | Inhalt |
 |---|---|---|
-| `pdfConverter.ts` | **Pure Core** | `pdfinfo`/`pdftoppm`/`pdftotext`-Wrapper: Probe (Seitenzahl, verschlüsselt), Seitenrendering (`-scale-to 2400`, lange Kante), Textebenen-Extraktion (`extractTextLayout`, `pdftotext -bbox-layout` → XHTML), Job-Tempverzeichnis, Fehlerabbildung (`FlipbookConversionError`). **Keine Payload- oder App-Imports.** `mupdf` (WASM) ist nur als Alternative dokumentiert, nicht implementiert. |
+| `pdfConverter.ts` | **Pure Core** | `pdfinfo`/`pdftoppm`/`pdftotext`-Wrapper: Probe (Seitenzahl, verschlüsselt), Seitenrendering (`-scale-to 2400`, lange Kante, `FLIPBOOK_RENDER_CONCURRENCY` = 3 Seiten parallel), Textebenen-Extraktion (`extractTextLayout`, `pdftotext -bbox-layout` → XHTML), Job-Tempverzeichnis, Fehlerabbildung (`FlipbookConversionError`). **Keine Payload- oder App-Imports.** `mupdf` (WASM) ist nur als Alternative dokumentiert, nicht implementiert. |
 | `payloadFlipbookConversion.ts` | **Payload-Glue** | Serielle In-Process-Queue (`enqueueFlipbookConversion`), Job (`runFlipbookConversion`), Auslöser (`maybeScheduleFlipbookConversion`), `onInit`-Reset (`resetInterruptedFlipbookJobs`). Self-Updates tragen `W1_SKIP_FLIPBOOK_CONVERSION`. |
 | `cleanup.ts` | **Payload-Glue** | Markiert ersetzte Revisionen (`generatedReleasedAt`), Aufbewahrungsfrist-Timer, Sweep abgelaufener `generatedBy: 'flipbook'`-Medien, Löschen der Seiten eines Flipbooks. |
 | `cover.ts` | **Pure** | `resolveCoverImageId`: Cover aus Seite 1, gewählter Seite oder eigenem Bild. |
@@ -25,7 +25,7 @@ System-Doku: `doc/w1-flipbook.md` (Datenfluss, Betrieb, Grenzen).
 | `src/payload/collections/Pdfedits.ts`, `Pdfeditrecords.ts` | Pdfedit-Dokument (Flipbook + Feld-Schema) und geordnete Datensätze |
 | `src/app/(payload)/api/pdfedit-*/route.ts`, `src/components/pdfedit/*.tsx` | Pdfedit-Editor auf der Startseite (`/?book=<slug>&edit=1`): Daten-Input, Record-Persistenz, CSV/JSON-Export |
 | `src/payload/collections/Media.ts` | PDF-MIME, `generatedBy/For/Revision/ReleasedAt`, `baseListFilter`, modulneutraler `beforeDelete`-Guard |
-| `next.config.mjs` | `Cache-Control: public, max-age=3600` nur für `/api/media/file/fb-*` (erzeugte Seitenbilder) |
+| `next.config.mjs` | `Cache-Control: public, max-age=43200` nur für `/api/media/file/fb-*` (erzeugte Seitenbilder, Chunks, Manifest) |
 | `src/payload/components/FlipbookConvertButton.tsx` | Status, Fortschritt, Neustart, Hinweis „Quelle geändert" |
 | `src/app/(payload)/api/flipbook-convert/route.ts` | Admin-Endpoint (GET Status, POST Neustart) |
 | `src/payload.config.ts` | Collection, `onInit`: Interrupted-Reset, Temp-Cleanup, Sweep |
@@ -56,6 +56,12 @@ System-Doku: `doc/w1-flipbook.md` (Datenfluss, Betrieb, Grenzen).
   **ab dem Ersetzen** (`generatedReleasedAt`), nicht ab Erstellung. Nie
   veröffentlichte Seiten (fehlgeschlagene/abgebrochene Jobs) zählen ab
   Erstellung. Die Frist muss länger als die Cache-Zeit der Seitenbilder sein
-  (1 h, `next.config.mjs`).
+  (12 h, `next.config.mjs`).
+- Seiten werden parallel vorgerendert, die Media-Dokumente aber streng in
+  Seitenreihenfolge angelegt; Seitentitel (Alt-Texte) werden einmal pro Job
+  gelesen. Bei Abbruch wartet der Job auf laufende Renderings, bevor er das
+  Temp-Verzeichnis löscht.
+- Das Manifest übernimmt die PDF-eigenen Seitenbezeichnungen (`/PageLabels`),
+  wo die Seitenzeilen keine `label` haben.
 - Temp-Verzeichnis: `W1_FLIPBOOK_TMP_DIR` (Default `<tmpdir>/w1-flipbook`).
 - Grenzen: 500 MB (Validierung am Feld), 300 Seiten (Job).

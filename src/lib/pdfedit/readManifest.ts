@@ -3,11 +3,10 @@ import { promises as fs } from 'fs'
 import type { Payload } from 'payload'
 import { buildManifest, chunkPdf, extractPdfData } from '@werk1/w1-system-flipbook/pdf/server'
 import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
-import { relationId } from '@/lib/flipbook/payloadFlipbookConversion'
-import { PDFEDIT_GENERATOR } from './pdfUpdate'
+import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 import { retryWriteConflict } from './retryWrite'
-import { findMedia, mediaPath } from './context'
-import type { IdLike, MediaDoc } from './context'
+import { findMedia, mediaPath, PDFEDIT_GENERATOR } from './context'
+import type { FlipbookDoc, IdLike, MediaDoc } from './context'
 
 type PdfeditLike = {
   id: IdLike
@@ -42,12 +41,47 @@ async function createArtifact(
   return { id: created.id, url: mediaUrl(created, params.filename) }
 }
 
+/**
+ * Offers the manifest to the flipbook reader (module-neutral `overrideManifestUrl`/
+ * `overrideManifestFor`) while the flipbook still shows this updated PDF.
+ */
+async function publishToFlipbook(payload: Payload, flipbookId: IdLike, readPdfId: string, manifestUrl: string): Promise<void> {
+  const flipbook = (await payload
+    .findByID({ collection: 'flipbooks' as never, id: flipbookId, depth: 0, overrideAccess: true, select: { pdfOverride: true, overrideManifestFor: true } as never })
+    .catch(() => null)) as (FlipbookDoc & { pdfOverride?: unknown; overrideManifestFor?: unknown }) | null
+  if (!flipbook || relationId(flipbook.pdfOverride) !== readPdfId || flipbook.overrideManifestFor === readPdfId) return
+  await retryWriteConflict(() =>
+    payload.update({
+      collection: 'flipbooks' as never,
+      id: flipbookId,
+      data: { overrideManifestUrl: manifestUrl, overrideManifestFor: readPdfId } as never,
+      overrideAccess: true,
+      context: { [W1_SKIP_FLIPBOOK_CONVERSION]: true },
+    }),
+  )
+}
+
+/** Removes the pdfedit's own manifest (no updated PDF any more: the reading view uses the flipbook's). */
+async function release(payload: Payload, pdfedit: PdfeditLike): Promise<void> {
+  const previous = Array.isArray(pdfedit.manifestMedia) ? (pdfedit.manifestMedia as IdLike[]) : []
+  await retryWriteConflict(() =>
+    payload.update({
+      collection: 'pdfedits' as never,
+      id: pdfedit.id,
+      data: { manifestUrl: null, manifestPdf: null, manifestMedia: [] } as never,
+      overrideAccess: true,
+    }),
+  )
+  await deleteMediaByIds(payload, previous)
+}
+
 async function build(
   payload: Payload,
   pdfedit: PdfeditLike,
   readPdfId: string,
   revision: string,
   pageLabels: string[],
+  flipbookId: IdLike,
 ): Promise<string | null> {
   const createdIds: IdLike[] = []
   try {
@@ -104,6 +138,7 @@ async function build(
       }),
     )
     await deleteMediaByIds(payload, previous)
+    await publishToFlipbook(payload, flipbookId, readPdfId, manifestArtifact.url)
     return manifestArtifact.url
   } catch (error) {
     payload.logger.warn(
@@ -115,28 +150,37 @@ async function build(
 }
 
 /**
- * URL of the PDF.js manifest (text layer, links) of the PDF the reader shows.
- * Built on first use (awaited) and rebuilt when that PDF changes (an update
- * replaces the edited PDF): the rebuild runs in the background and returns
- * `null` meanwhile, so loading the editor after an update does not wait for
- * chunking and extraction, and the reader never gets the text layer of the
- * previous PDF. Non-fatal: without a manifest the reader works without text
- * selection and PDF links.
+ * URL of the PDF.js manifest (text layer, links) of the PDF the reading view
+ * shows. Without an updated PDF that is the published source, whose manifest
+ * the flipbook conversion builds (`flipbooks.manifestUrl`): no copy is made,
+ * and an own manifest left from an earlier update is released. With an
+ * updated PDF the pdfedit builds its manifest itself, in the background (the
+ * call returns `null` meanwhile, so neither the editor load nor the PDF update
+ * waits for chunking and extraction), and offers it to the flipbook reader.
+ * Non-fatal: without a manifest the reader works without text selection and
+ * PDF links.
  */
 export async function ensureReadManifest(
   payload: Payload,
   pdfedit: PdfeditLike,
-  params: { readPdfId: string | null; revision: string; pageLabels: string[] },
+  params: { editedPdfId: string | null; flipbook: Pick<FlipbookDoc, 'id' | 'manifestUrl'>; revision: string; pageLabels: string[] },
 ): Promise<string | null> {
-  const { readPdfId, revision, pageLabels } = params
-  if (!readPdfId) return null
-  const current = typeof pdfedit.manifestUrl === 'string' && pdfedit.manifestUrl ? pdfedit.manifestUrl : null
-  if (current && relationId(pdfedit.manifestPdf) === readPdfId) return current
+  const { editedPdfId, flipbook, revision, pageLabels } = params
   const key = String(pdfedit.id)
-  let job = inflight.get(key)
-  if (!job) {
-    job = build(payload, pdfedit, readPdfId, revision, pageLabels).finally(() => inflight.delete(key))
+  const own = typeof pdfedit.manifestUrl === 'string' && pdfedit.manifestUrl ? pdfedit.manifestUrl : null
+  if (!editedPdfId) {
+    if ((own || (Array.isArray(pdfedit.manifestMedia) && pdfedit.manifestMedia.length > 0)) && !inflight.has(key)) {
+      void release(payload, pdfedit).catch((error) => payload.logger.warn(`pdfedit: releasing the manifest of ${key} failed: ${String(error)}`))
+    }
+    return typeof flipbook.manifestUrl === 'string' && flipbook.manifestUrl ? flipbook.manifestUrl : null
+  }
+  if (own && relationId(pdfedit.manifestPdf) === editedPdfId) {
+    void publishToFlipbook(payload, flipbook.id, editedPdfId, own).catch(() => undefined)
+    return own
+  }
+  if (!inflight.has(key)) {
+    const job = build(payload, pdfedit, editedPdfId, revision, pageLabels, flipbook.id).finally(() => inflight.delete(key))
     inflight.set(key, job)
   }
-  return current ? null : job
+  return null
 }

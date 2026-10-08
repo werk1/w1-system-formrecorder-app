@@ -21,6 +21,10 @@ export const FLIPBOOK_MAX_PDF_BYTES = 500 * 1024 * 1024
 export const FLIPBOOK_TARGET_LONG_EDGE = 2400
 export const FLIPBOOK_PROBE_TIMEOUT_MS = 30 * 1000
 export const FLIPBOOK_PAGE_TIMEOUT_MS = 2 * 60 * 1000
+/** Whole-document text/style extraction (pdftotext, pdftohtml) of up to FLIPBOOK_MAX_PAGES pages. */
+export const FLIPBOOK_TEXT_TIMEOUT_MS = 5 * 60 * 1000
+/** Pages rendered at the same time (one single-threaded pdftoppm process each). */
+export const FLIPBOOK_RENDER_CONCURRENCY = 3
 
 export type FlipbookConversionErrorCode =
   | 'unavailable'
@@ -181,7 +185,7 @@ export async function extractTextLayout(filePath: string): Promise<string> {
   const { stdout } = await run(
     'pdftotext',
     ['-bbox-layout', filePath, '-'],
-    FLIPBOOK_PROBE_TIMEOUT_MS,
+    FLIPBOOK_TEXT_TIMEOUT_MS,
     64 * 1024 * 1024,
   )
   if (!stdout.includes('<page')) throw new FlipbookConversionError('render-failed', 'keine Textebene')
@@ -197,7 +201,7 @@ export async function extractStyleLayout(filePath: string): Promise<string> {
   const { stdout } = await run(
     'pdftohtml',
     ['-xml', '-zoom', '1', '-i', '-stdout', filePath],
-    FLIPBOOK_PROBE_TIMEOUT_MS,
+    FLIPBOOK_TEXT_TIMEOUT_MS,
     128 * 1024 * 1024,
   )
   if (!stdout.includes('<page')) throw new FlipbookConversionError('render-failed', 'keine Stilinformationen')

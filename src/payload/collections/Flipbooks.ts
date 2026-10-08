@@ -242,6 +242,13 @@ export const Flipbooks: CollectionConfig = {
       admin: { readOnly: true, position: "sidebar", description: "PDF der veröffentlichten Revision." },
     },
     { name: "publishedRevision", type: "text", admin: { readOnly: true, position: "sidebar" } },
+    {
+      // PDF.js manifest (text layer, links, chunks) of the published revision, built by the conversion.
+      name: "manifestUrl",
+      type: "text",
+      admin: { readOnly: true, position: "sidebar" },
+      access: { update: () => false },
+    },
     { name: "pageCount", type: "number", admin: { readOnly: true, position: "sidebar" } },
     {
       // Published replacements of single pages (e.g. written by the pdfedit
@@ -275,6 +282,14 @@ export const Flipbooks: CollectionConfig = {
       admin: { readOnly: true, position: "sidebar", description: "Revision, auf der die aktualisierten Seiten beruhen; bei Abweichung werden sie ignoriert." },
     },
     { name: "overrideSource", type: "text", admin: { readOnly: true, position: "sidebar", description: "Quelle der aktualisierten Seiten (Pdfedit-ID)." } },
+    {
+      // PDF.js manifest (text layer, links) of `pdfOverride`, published by the same module.
+      // The reader uses it only while `overrideManifestFor` names the current `pdfOverride`.
+      name: "overrideManifestUrl",
+      type: "text",
+      admin: { readOnly: true, position: "sidebar", description: "Manifest (Textebene, Links) des aktualisierten PDFs." },
+    },
+    { name: "overrideManifestFor", type: "text", admin: { readOnly: true, hidden: true } },
     {
       name: "textModel",
       type: "json",

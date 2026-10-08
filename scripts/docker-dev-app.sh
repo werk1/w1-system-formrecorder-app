@@ -70,7 +70,10 @@ ensure_dependencies() {
 
   if [ -f package-lock.json ]; then
     log "[docker-dev-app] running npm ci"
-    npm ci --no-audit --no-fund
+    # The lock file is written with legacy peer deps: unused peers such as
+    # yjs (@lexical/yjs) or monaco-editor (@monaco-editor/react) are not in
+    # it, so a strict npm ci would reject it as out of sync.
+    npm ci --no-audit --no-fund --legacy-peer-deps
   else
     log "[docker-dev-app] running npm install without package lock"
     npm install --no-audit --no-fund --package-lock=false

@@ -7,6 +7,7 @@ import configPromise from '@payload-config'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
+import { cache } from 'react'
 
 type FlipbookReaderPageProps = {
   params: Promise<{ slug: string }>
@@ -21,11 +22,12 @@ function baseUrl(): string {
   return raw.endsWith('/') ? raw.slice(0, -1) : raw
 }
 
-async function loadFlipbook(slug: string, locale: string) {
+/** Once per request: metadata and page share the lookup. */
+const loadFlipbook = cache(async (slug: string, locale: string) => {
   const payload = await getPayload({ config: configPromise })
   const doc = await loadPublishedFlipbook(payload, slug, locale)
   return { doc, input: mapFlipbookToInput(doc) }
-}
+})
 
 export async function generateMetadata({ params, searchParams }: FlipbookReaderPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -47,9 +49,7 @@ export default async function FlipbookReaderPage({ params, searchParams }: Flipb
   const { slug } = await params
   const query = await searchParams
   const locale = resolveFlipbookLocale(query.locale)
-  const payload = await getPayload({ config: configPromise })
-  const doc = await loadPublishedFlipbook(payload, slug, locale)
-  const input = mapFlipbookToInput(doc)
+  const { doc, input } = await loadFlipbook(slug, locale)
   if (!input) notFound()
   const clientLogo = await getClientLogo()
 

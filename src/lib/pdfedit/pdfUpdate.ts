@@ -11,10 +11,11 @@ import { deleteMediaByIds } from '@/lib/flipbook/cleanup'
 import { relationId, W1_SKIP_FLIPBOOK_CONVERSION } from '@/lib/flipbook/payloadFlipbookConversion'
 import { createGoogleFontProvider } from './googleFonts'
 import { loadReplacement } from './imageFiles'
-import { findMedia, imageEditsKey, loadFlipbookOf, loadPdfedit, loadRecords, mediaPath, serialize } from './context'
+import { findMedia, imageEditsKey, loadFlipbookOf, loadPdfedit, loadRecords, mediaPath, PDFEDIT_GENERATOR, serialize } from './context'
+import { ensureReadManifest } from './readManifest'
 import type { IdLike, MediaDoc } from './context'
 
-export const PDFEDIT_GENERATOR = 'pdfedit'
+export { PDFEDIT_GENERATOR } from './context'
 
 export type PdfUpdateAction = { type: 'apply' } | { type: 'restore'; pageIndex: number } | { type: 'restoreAll' }
 
@@ -189,6 +190,9 @@ export async function updatePdfedit(
           pdfOverride: editedPdfId,
           overrideRevision: hasEdits ? revision : null,
           overrideSource: hasEdits ? String(pdfeditId) : null,
+          // The manifest of the new PDF follows in the background (see below).
+          overrideManifestUrl: null,
+          overrideManifestFor: null,
         } as never,
         overrideAccess: true,
         context: { [W1_SKIP_FLIPBOOK_CONVERSION]: true },
@@ -202,6 +206,20 @@ export async function updatePdfedit(
     for (const record of resetRecords) {
       await payload.update({ collection: 'pdfeditrecords' as never, id: record.id, data: { blocks: record.blocks } as never, overrideAccess: true })
       resetRecordIds.push(record.id)
+    }
+
+    // Text layer and links of the updated PDF for the reader and the reading view:
+    // built in the background, the response does not wait for it.
+    if (editedPdfId) {
+      const fresh = await loadPdfedit(payload, doc.id)
+      if (fresh) {
+        void ensureReadManifest(payload, fresh, {
+          editedPdfId: String(editedPdfId),
+          flipbook,
+          revision,
+          pageLabels: (flipbook.pages ?? []).map((p) => (typeof p.label === 'string' ? p.label : '')),
+        })
+      }
     }
 
     return {
