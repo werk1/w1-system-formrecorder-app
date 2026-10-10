@@ -180,7 +180,7 @@ export default buildConfig({
     disable: true,
   },
   upload: {
-    requestSizeLimit: 300 * 1024 * 1024, // 300 MB (Payload 3.90 default is 50 MB)
+    requestSizeLimit: 500 * 1024 * 1024, // 500 MB = FLIPBOOK_MAX_PDF_BYTES (Payload 3.90 default is 50 MB)
     // Flipbook PDFs up to 500 MB must stream to a temp file instead of RAM.
     useTempFiles: true,
     tempFileDir: path.join(os.tmpdir(), 'w1-uploads'),
