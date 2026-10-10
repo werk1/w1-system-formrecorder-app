@@ -31,6 +31,17 @@ const DEFAULT_DIMENSIONS = {
   FOOTER_HEIGHT: 0,
 }
 
+/** Debug panels and their stored flags are development-only. */
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+function rememberDebugFlag(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, String(value))
+  } catch {
+    // No storage (private mode): the flag is just not remembered.
+  }
+}
+
 export const createUIStateSlice: StateCreator<UIStateSlice> = (set, get) => {
   // Auto-subscribe to store changes for overlay management
   // Initialize subscriptions after store is created
@@ -170,12 +181,13 @@ export const createUIStateSlice: StateCreator<UIStateSlice> = (set, get) => {
         },
       })),
 
+    // Debug panels exist in development only. In a production build the
+    // setters change nothing and write nothing (NODE_ENV is inlined by Next).
     toggleDebugPanel: () =>
       set((state) => {
+        if (IS_PRODUCTION) return state
         const newState = !state.ui.isDebugPanelOpen
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('debug_panel', String(newState))
-        }
+        rememberDebugFlag('debug_panel', newState)
         return {
           ui: {
             ...state.ui,
@@ -186,10 +198,9 @@ export const createUIStateSlice: StateCreator<UIStateSlice> = (set, get) => {
 
     toggleMediaDebug: () =>
       set((state) => {
+        if (IS_PRODUCTION) return state
         const newState = !state.ui.isMediaDebugOpen
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('media_debug', String(newState))
-        }
+        rememberDebugFlag('media_debug', newState)
         return {
           ui: {
             ...state.ui,
@@ -200,9 +211,8 @@ export const createUIStateSlice: StateCreator<UIStateSlice> = (set, get) => {
 
     setDebugPanelOpen: (isOpen) =>
       set((state) => {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('debug_panel', String(isOpen))
-        }
+        if (IS_PRODUCTION) return state
+        rememberDebugFlag('debug_panel', isOpen)
         return {
           ui: {
             ...state.ui,
@@ -213,9 +223,8 @@ export const createUIStateSlice: StateCreator<UIStateSlice> = (set, get) => {
 
     setMediaDebugOpen: (isOpen) =>
       set((state) => {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('media_debug', String(isOpen))
-        }
+        if (IS_PRODUCTION) return state
+        rememberDebugFlag('media_debug', isOpen)
         return {
           ui: {
             ...state.ui,

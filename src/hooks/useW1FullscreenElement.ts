@@ -51,7 +51,6 @@ import { RefObject, useEffect, useState } from 'react'
  * ## Features:
  *
  * - Cross-browser fullscreen detection
- * - SessionStorage persistence across page reloads
  * - Custom events for real-time component communication
  * - Generic typing for any HTML element
  * - Automatic cleanup of event listeners
@@ -102,12 +101,6 @@ export function useW1FullscreenElement<T extends HTMLElement = HTMLElement>(
           boundStore.getState().setIsFullscreen(!!isDocFullscreen)
         }
 
-        // Signal to other components that video is in fullscreen
-        window.sessionStorage.setItem(
-          'videoFullscreen',
-          isDocFullscreen ? 'true' : 'false',
-        )
-
         // Also dispatch a custom event for components that may need real-time notification
         window.dispatchEvent(
           new CustomEvent('video-fullscreen-change', {
@@ -121,12 +114,6 @@ export function useW1FullscreenElement<T extends HTMLElement = HTMLElement>(
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
     document.addEventListener('mozfullscreenchange', handleFullscreenChange)
     document.addEventListener('MSFullscreenChange', handleFullscreenChange)
-
-    // Check initial state
-    if (typeof window !== 'undefined') {
-      const fullscreenFlag = window.sessionStorage.getItem('videoFullscreen')
-      setIsFullscreen(fullscreenFlag === 'true')
-    }
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
